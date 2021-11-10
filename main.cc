@@ -1,8 +1,12 @@
 #include "glm.h"
+#include "stb_image_write.h"
+#include <algorithm>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <limits>
-#include <vector>
 #include <optional>
+// #include <vector>
 
 using Vec = glm::dvec3;
 
@@ -266,66 +270,99 @@ struct Sampler {
     }
 };
 
-struct Pixel {
-    int x, y;
-    Sampler s;
-    Vec c;
+struct Camera {
+    // Vec o, d, r, u;
+    //
+    // Vec(const Vec& o, const Vec& d, const Vec& u) :
+    //     o(o),
+    //     d(glm::normalize(d)),
+    //     r(glm::normalize(glm::cross(d, u))),
+    //     u(glm::cross(r, d))
+    // {}
 
-    Pixel(int x, int y, uint16_t* buf) :
-        x(x), y(y), s(buf), c(0)
-    {}
+    Vec o, d, cx, cy;
+};
 
-    void sample(int n, int w, int h, const Vec& cx, const Vec& cy, const Ray& cam) {
-        for (int sy = 0; sy < 2; ++sy) {
-            for (int sx = 0; sx < 2; ++sx) {
-                Vec r(0);
-                for (int i = 0; i < n; ++i) {
-                    double dx = s.triangle();
-                    double dy = s.triangle();
-                    double lx = ((sx + 0.5 + dx) / 2 + x) / w - 0.5;
-                    double ly = ((sy + 0.5 + dy) / 2 + y) / h - 0.5;
-                    Vec d = glm::normalize(cx * lx + cy * ly + cam.d);
-                    r += s.radiance(Ray(cam.o + d * 140.0, d), 0) * (1.0 / n);
+struct Image {
+    struct Pixel {
+        int x, y;
+        Sampler s;
+        Vec c;
+
+        Pixel(int x, int y, uint16_t* buf) :
+            x(x), y(y), s(buf), c(0)
+        {}
+
+        void sample(int n, Image& im, const Camera& cam) {
+            for (int sy = 0; sy < 2; ++sy) {
+                for (int sx = 0; sx < 2; ++sx) {
+                    Vec r(0);
+                    for (int i = 0; i < n; ++i) {
+                        double dx = s.triangle();
+                        double dy = s.triangle();
+                        double lx = ((sx + 0.5 + dx) / 2 + x) / im.w - 0.5;
+                        double ly = ((sy + 0.5 + dy) / 2 + y) / im.h - 0.5;
+                        Vec d = glm::normalize(cam.cx * lx + cam.cy * ly + cam.d);
+                        r += s.radiance(Ray(cam.o + d * 140.0, d), 0) * (1.0 / n);
+                    }
+                    c += glm::clamp(r, 0.0, 1.0) / 4.0;
                 }
-                c += glm::clamp(r, 0.0, 1.0) / 4.0;
+            }
+        }
+
+        uint32_t rgb() const {
+            Vec r = glm::pow(c, Vec(1 / 2.2)) * 255.0 + 0.5;
+            uint8_t t[4] = {(uint8_t) r.x, (uint8_t) r.y, (uint8_t) r.z};
+            return *(uint32_t*) &t;
+        }
+    };
+
+    int w, h;
+    Pixel* p;
+
+    Image(int w, int h) : w(w), h(h) {
+        p = (Pixel*) malloc(w * h * sizeof(Pixel));
+    }
+
+    ~Image() {
+        free(p);
+    }
+
+    void render(int spp, const Camera& cam) {
+        int k = 0;
+        #pragma omp parallel for schedule(dynamic, 1) num_threads(4)
+        for (int y = 0; y < h; y++) {
+            uint16_t buf[3] = {0, 0, (uint16_t)((unsigned)y * y * y)};
+            for (int x = 0; x < w; x++) {
+                int i = (h - y - 1) * w + x;
+                new (p + i) Pixel(x, y, buf);
+                p[i].sample(spp / 4, *this, cam);
+                k = std::max(k, y * w + x);
+                fprintf(stderr, "\rRendering (%d spp) %5.2f%%", spp, 100.0 * k / (h * w - 1));
             }
         }
     }
-
-    glm::ivec3 rgb() const {
-        return glm::pow(c, Vec(1 / 2.2)) * 255.0 + 0.5;
-    }
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char** argv) {
     int w, h, spp = argc >= 2 ? atoi(argv[1]) : 200;
     if (argc >= 4) {
         w = atoi(argv[2]);
         h = atoi(argv[3]);
     } else {
         w = 160, h = 120;
-        // w = 16, h = 12;
     }
-    Ray cam(Vec(50, 52, 295.6), glm::normalize(Vec(0, -0.042612, -1)));
-    Vec cx = Vec(w * 0.5135 / h, 0, 0);
-    Vec cy = glm::normalize(glm::cross(cx, cam.d)) * 0.5135;
-    Pixel* p = (Pixel*) malloc(w * h * sizeof(Pixel));
-    int k = 0;
-#pragma omp parallel for schedule(dynamic, 1) num_threads(4)
-    for (int y = 0; y < h; y++) {
-        uint16_t buf[3] = {0, 0, (uint16_t)((unsigned)y * y * y)};
-        for (int x = 0; x < w; x++) {
-            int i = (h - y - 1) * w + x;
-            new (p + i) Pixel(x, y, buf);
-            p[i].sample(spp / 4, w, h, cx, cy, cam);
-            k = std::max(k, y * w + x);
-            fprintf(stderr, "\rRendering (%d spp) %5.2f%%", spp, 100. * k / (h * w - 1));
-        }
-    }
-    FILE *f = fopen("image.ppm", "w");
-    fprintf(f, "P3\n%d %d\n%d\n", w, h, 255);
+    Vec o(50, 52, 295.6);
+    Vec d = glm::normalize(Vec(0, -0.042612, -1));
+    Vec cx = Vec(1, 0, 0) * (0.5135 * w / h);
+    Vec cy = glm::normalize(glm::cross(cx, d)) * 0.5135;
+    Camera cam {o, d, cx, cy};
+    Image im(w, h);
+    im.render(spp, cam);
+    uint8_t* buf = (uint8_t*) malloc(w * h * 3);
     for (int i = 0; i < w * h; i++) {
-        glm::ivec3 c = p[i].rgb();
-        fprintf(f, "%d %d %d ", c.x, c.y, c.z);
+        uint32_t c = im.p[i].rgb();
+        memcpy(buf + i * 3, &c, 3);
     }
+    stbi_write_png("result.png", w, h, 3, buf, 0);
 }
