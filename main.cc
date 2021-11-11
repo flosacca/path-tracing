@@ -11,6 +11,9 @@
 using Vec = glm::dvec3;
 
 constexpr double INF = std::numeric_limits<double>::infinity();
+constexpr double PI = glm::pi<double>();
+
+constexpr double EPS = 1e-4;
 
 inline void print(const Vec& a) {
     printf("(%.3f, %.3f, %.3f)\n", a.x, a.y, a.z);
@@ -20,8 +23,7 @@ struct Ray {
     Vec o, d;
 
     Ray(const Vec& o, const Vec& d) :
-        o(o), d(d)
-    {}
+        o(o), d(d) {}
 
     Vec operator()(double t) const {
         return o + t * d;
@@ -137,20 +139,27 @@ enum Material {
 // };
 // // }}}
 
-// Sphere {{{
-struct Sphere {
-    double rad;
-    Vec p, e, c;
+struct Model {
+    Vec e, c;
     Material m;
 
-    Sphere(double rad, Vec p, Vec e, Vec c, Material m):
-        rad(rad), p(p), e(e), c(c), m(m)
-    {}
+    Model(const Vec& e, const Vec& c, Material m) :
+        e(e), c(c), m(m) {}
+
+    virtual std::optional<std::pair<double, LocalData>> find(const Ray& r) const = 0;
+};
+
+struct Sphere : Model {
+    double rad;
+    Vec p;
+
+    Sphere(double rad, const Vec& p, const Vec& c,
+            Material m = DIFFUSE, const Vec& e = Vec(0)) :
+        Model(e, c, m), rad(rad), p(p) {}
 
     std::optional<std::pair<double, LocalData>> find(const Ray& r) const {
         Vec op = p - r.o;
         double t;
-        constexpr double eps = 1e-4;
         double b = glm::dot(op, r.d);
         double det = b * b - glm::dot(op, op) + rad * rad;
         bool i = true;
@@ -159,9 +168,9 @@ struct Sphere {
         else {
             det = sqrt(det);
             t = b - det;
-            if (t <= eps) {
+            if (t <= EPS) {
                 t = b + det;
-                if (t <= eps) {
+                if (t <= EPS) {
                     i = false;
                 }
             }
@@ -174,22 +183,38 @@ struct Sphere {
     }
 };
 
-#define DIFF DIFFUSE
-#define SPEC SPECULAR
-#define REFR REFRACTION
+struct Plane : Model {
+    Vec p, n;
 
-Sphere spheres[] = {//Scene: radius, position, emission, color, material
-  Sphere(1e5, Vec( 1e5+1,40.8,81.6), Vec(),Vec(.75,.25,.25),DIFF),//Left
-  Sphere(1e5, Vec(-1e5+99,40.8,81.6),Vec(),Vec(.25,.25,.75),DIFF),//Rght
-  Sphere(1e5, Vec(50,40.8, 1e5),     Vec(),Vec(.75,.75,.75),DIFF),//Back
-  Sphere(1e5, Vec(50,40.8,-1e5+170), Vec(),Vec(),           DIFF),//Frnt
-  Sphere(1e5, Vec(50, 1e5, 81.6),    Vec(),Vec(.75,.75,.75),DIFF),//Botm
-  Sphere(1e5, Vec(50,-1e5+81.6,81.6),Vec(),Vec(.75,.75,.75),DIFF),//Top
-  Sphere(16.5,Vec(27,16.5,47),       Vec(),Vec(1,1,1)*.999, SPEC),//Mirr
-  Sphere(16.5,Vec(73,16.5,78),       Vec(),Vec(1,1,1)*.999, REFR),//Glas
-  Sphere(600, Vec(50,681.6-.27,81.6),Vec(12,12,12),  Vec(), DIFF) //Lite
+    Plane(const Vec& p, const Vec& n, const Vec& c, Material m = DIFFUSE,
+            const Vec& e = Vec(0))
+        : Model(e, c, m), p(p), n(glm::normalize(n)) {}
+
+    LocalData local() const { return {n}; }
+
+    std::optional <std::pair<double, LocalData>> find(const Ray& r) const {
+        double w = glm::dot(r.d, n);
+        if (glm::abs(w) > EPS) {
+            double t = glm::dot(p - r.o, n) / w;
+            if (t > EPS) {
+                return {{t, local()}};
+            }
+        }
+        return {};
+    }
 };
-// }}}
+
+Model* models[] = {
+    new Plane(Vec(-50, 0, 0), Vec(-1, 0, 0), Vec(0.75, 0.25, 0.25)),
+    new Plane(Vec(+50, 0, 0), Vec(+1, 0, 0), Vec(0.25, 0.25, 0.75)),
+    new Plane(Vec(0, 0, 0), Vec(0, 0, +1), Vec(0.75)),
+    new Plane(Vec(0, 0, 225), Vec(0, 0, -1), Vec(0.25, 0.75, 0.25)),
+    new Plane(Vec(0, 0, 0), Vec(0, +1, 0), Vec(0.75)),
+    new Plane(Vec(0, 100, 0), Vec(0, -1, 0), Vec(0.75)),
+    new Sphere(16, Vec(-25, 16, 25), Vec(1), SPECULAR),
+    new Sphere(16, Vec(+25, 16, 50), Vec(1), REFRACTION),
+    new Sphere(600, Vec(0, 700 - 0.3, 50), Vec(0), DIFFUSE, Vec(12)),
+};
 
 struct Sampler {
     uint16_t* buf;
@@ -208,17 +233,17 @@ struct Sampler {
     Vec radiance(const Ray& r, int depth) {
         double t = INF;
         Vec n;
-        const Sphere* obj = nullptr;
-        for (const Sphere& e : spheres) {
-            std::optional<std::pair<double, LocalData>> p = e.find(r);
+        Model* obj = nullptr;
+        for (Model* m : models) {
+            std::optional<std::pair<double, LocalData>> p = m->find(r);
             if (p && p->first < t) {
                 t = p->first;
                 n = p->second.n;
-                obj = &e;
+                obj = m;
             }
         }
         if (!obj) {
-            return {};
+            return Vec(0);
         }
         Vec x = r(t);
         bool into = glm::dot(n, r.d) < 0;
@@ -233,11 +258,18 @@ struct Sampler {
             f /= p;
         }
         if (obj->m == DIFFUSE) {
-            double r1 = 2 * glm::pi<double>() * this->uniform();
+            double r1 = 2 * PI * this->uniform();
             double r2 = this->uniform();
             double r2s = sqrt(r2);
             Vec w = nl;
-            Vec u = glm::normalize(glm::cross(fabs(w.x) > 0.1 ? Vec(0, 1, 0) : Vec(1, 0, 0), w));
+            double theta = glm::acos(w.z / glm::length(w));
+            double phi = glm::atan(w.y, w.x);
+            theta = fmod(theta + PI / 2, PI);
+            Vec u = Vec {
+                glm::cos(phi) * glm::sin(theta),
+                glm::sin(phi) * glm::sin(theta),
+                glm::cos(theta)
+            };
             Vec v = glm::cross(w, u);
             Vec d = glm::normalize(u * glm::cos(r1) * r2s + v * glm::sin(r1) * r2s + w * glm::sqrt(1 - r2));
             return obj->e + f * radiance(Ray(x, d), depth);
@@ -290,8 +322,7 @@ struct Image {
         Vec c;
 
         Pixel(int x, int y, uint16_t* buf) :
-            x(x), y(y), s(buf), c(0)
-        {}
+            x(x), y(y), s(buf), c(0) {}
 
         void sample(int n, Image& im, const Camera& cam) {
             for (int sy = 0; sy < 2; ++sy) {
@@ -303,7 +334,7 @@ struct Image {
                         double lx = ((sx + 0.5 + dx) / 2 + x) / im.w - 0.5;
                         double ly = ((sy + 0.5 + dy) / 2 + y) / im.h - 0.5;
                         Vec d = glm::normalize(cam.cx * lx + cam.cy * ly + cam.d);
-                        r += s.radiance(Ray(cam.o + d * 140.0, d), 0) * (1.0 / n);
+                        r += s.radiance(Ray(cam.o, d), 0) * (1.0 / n);
                     }
                     c += glm::clamp(r, 0.0, 1.0) / 4.0;
                 }
@@ -329,33 +360,39 @@ struct Image {
     }
 
     void render(int spp, const Camera& cam) {
-        int k = 0;
-        #pragma omp parallel for schedule(dynamic, 1) num_threads(4)
+        int s = 0;
+        #pragma omp parallel for schedule(dynamic, 1)
         for (int y = 0; y < h; y++) {
-            uint16_t buf[3] = {0, 0, (uint16_t)((unsigned)y * y * y)};
+            uint16_t buf[3] = {0, 0, (uint16_t)((unsigned) y * y * y)};
             for (int x = 0; x < w; x++) {
                 int i = (h - y - 1) * w + x;
                 new (p + i) Pixel(x, y, buf);
                 p[i].sample(spp / 4, *this, cam);
-                k = std::max(k, y * w + x);
-                fprintf(stderr, "\rRendering (%d spp) %5.2f%%", spp, 100.0 * k / (h * w - 1));
+                #pragma omp atomic
+                ++s;
+                fprintf(stderr, "\rRendering (%d spp) %5.2f%%", spp, 100.0 * s / (w * h));
             }
         }
     }
 };
 
 int main(int argc, char** argv) {
-    int w, h, spp = argc >= 2 ? atoi(argv[1]) : 200;
+    int w, h, spp = argc >= 2 ? atoi(argv[1]) : 100;
     if (argc >= 4) {
         w = atoi(argv[2]);
         h = atoi(argv[3]);
     } else {
+        // w = 640, h = 480;
+        // w = 320, h = 240;
         w = 160, h = 120;
+        // w = 80, h = 60;
     }
-    Vec o(50, 52, 295.6);
-    Vec d = glm::normalize(Vec(0, -0.042612, -1));
-    Vec cx = Vec(1, 0, 0) * (0.5135 * w / h);
-    Vec cy = glm::normalize(glm::cross(cx, d)) * 0.5135;
+    Vec o(0, 50, 225);
+    Vec d = glm::normalize(Vec(0, 0, -1));
+    double fov = glm::radians(45.0);
+    double f = glm::tan(fov / 2) * 2;
+    Vec cx = Vec((double) w / h, 0, 0) * f;
+    Vec cy = glm::normalize(glm::cross(cx, d)) * f;
     Camera cam {o, d, cx, cy};
     Image im(w, h);
     im.render(spp, cam);
