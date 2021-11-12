@@ -1,7 +1,7 @@
 #pragma once
 #include "common.h"
 
-enum Material {
+enum struct Material {
     DIFFUSE,
     SPECULAR,
     REFRACTION,
@@ -39,7 +39,7 @@ struct Sphere : Model {
     Vec o;
 
     Sphere(double r, const Vec& o, const Vec& c,
-        Material m = DIFFUSE, const Vec& e = Vec(0)) :
+        Material m = Material::DIFFUSE, const Vec& e = Vec(0)) :
         Model(e, c, m), r(r), o(o) {}
 
     Intersection find(const Ray& ray) const {
@@ -64,7 +64,7 @@ struct Plane : Model {
     Vec n, p;
 
     Plane(const Vec& n, const Vec& p, const Vec& c,
-        Material m = DIFFUSE, const Vec& e = Vec(0)) :
+        Material m = Material::DIFFUSE, const Vec& e = Vec(0)) :
         Model(e, c, m), n(n), p(p) {}
 
     Intersection find(const Ray& r) const {
