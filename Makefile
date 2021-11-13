@@ -1,5 +1,5 @@
 CFLAGS := -O3
-CXXFLAGS := -fopenmp -O3 -std=c++17 -Ilib
+CXXFLAGS := -std=c++17 -fopenmp -O3 -mavx2 -Ilib
 
 OBJS := build/image.o
 PCH := build/glm_all.gch

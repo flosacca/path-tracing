@@ -1,29 +1,6 @@
 #pragma once
 #include "common.h"
 
-enum struct Material {
-    DIFFUSE,
-    SPECULAR,
-    REFRACTION,
-};
-
-struct Model;
-
-struct Intersection {
-    double t;
-    Vec n;
-    const Model* m;
-
-    Intersection(double t, const Vec& n, const Model* m) :
-        t(t), n(n), m(m) {}
-
-    Intersection() : t(INF), n(0), m(nullptr) {}
-};
-
-inline bool operator<(const Intersection& a, const Intersection& b) {
-    return a.t < b.t;
-}
-
 struct Model {
     Vec e, c;
     Material m;
@@ -45,15 +22,15 @@ struct Sphere : Model {
     Intersection find(const Ray& ray) const {
         Vec v = o - ray.o;
         double b = glm::dot(v, ray.d);
-        double d2 = r * r - (glm::dot(v, v) - b * b);
-        if (d2 > EPS) {
-            double d = glm::sqrt(d2);
-            if (b + d > EPS) {
-                double t = b + d;
-                if (b - d > EPS) {
-                    t = b - d;
-                }
-                return {t, glm::normalize(ray(t) - o), this};
+        double s = r * r - (glm::dot(v, v) - b * b);
+        if (num::greater(s, 0)) {
+            double d = glm::sqrt(s);
+            double t1 = b + d;
+            if (num::greater(t1, 0)) {
+                double t2 = b - d;
+                double t = num::greater(t2, 0) ? t2 : t1;
+                Vec n = glm::normalize(ray(t) - o);
+                return {t, n, this};
             }
         }
         return {};
@@ -68,10 +45,10 @@ struct Plane : Model {
         Model(e, c, m), n(n), p(p) {}
 
     Intersection find(const Ray& r) const {
-        double w = glm::dot(r.d, n);
-        if (glm::abs(w) > EPS) {
-            double t = glm::dot(p - r.o, n) / w;
-            if (t > EPS) {
+        double d = glm::dot(r.d, n);
+        if (num::nonzero(d)) {
+            double t = glm::dot(p - r.o, n) / d;
+            if (num::greater(t, 0)) {
                 return {t, n, this};
             }
         }
