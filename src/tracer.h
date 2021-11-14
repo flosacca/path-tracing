@@ -27,7 +27,18 @@ public:
     RayTracer(const Scene& scene, Sampler& samp) :
         scene(scene), samp(samp) {}
 
-    Vec radiance(const Ray& r, int depth) {
+    static Vec ortho(const Vec& w) {
+        double theta = glm::acos(w.z / glm::length(w));
+        double phi = glm::atan(w.y, w.x);
+        theta = fmod(theta + PI / 2, PI);
+        return {
+            glm::cos(phi) * glm::sin(theta),
+            glm::sin(phi) * glm::sin(theta),
+            glm::cos(theta)
+        };
+    }
+
+    Vec radiance(const Ray& r, int depth, double E = 1) {
         Intersection i = scene.find(r);
         if (!i.m) {
             return Vec(0);
@@ -54,17 +65,36 @@ public:
             double r2 = samp.uniform();
             double r2s = sqrt(r2);
             Vec w = nl;
-            double theta = glm::acos(w.z / glm::length(w));
-            double phi = glm::atan(w.y, w.x);
-            theta = fmod(theta + PI / 2, PI);
-            Vec u = Vec {
-                glm::cos(phi) * glm::sin(theta),
-                glm::sin(phi) * glm::sin(theta),
-                glm::cos(theta)
-            };
+            Vec u = ortho(w);
             Vec v = glm::cross(w, u);
             Vec d = glm::normalize(u * glm::cos(r1) * r2s + v * glm::sin(r1) * r2s + w * glm::sqrt(1 - r2));
-            return i.m->e + f * radiance(Ray(x, d), depth);
+            Vec e(0);
+            for (const auto& p : scene.models){
+                Sphere* s = dynamic_cast<Sphere*>(p.get());
+                if (!s) {
+                    continue;
+                }
+                if (num::zero(glm::length(s->e))) {
+                    continue;
+                }
+                Vec sd = s->o - x;
+                Vec sw = glm::normalize(sd);
+                Vec su = ortho(sw);
+                Vec sv = glm::cross(sw, su);
+                double cos_a_max = sqrt(1 - s->r * s->r / glm::dot(sd, sd));
+                double ksi1 = samp.uniform();
+                double ksi2 = samp.uniform();
+                double cos_a = 1 + ksi1 * (cos_a_max - 1);
+                double sin_a = sqrt(1 - cos_a * cos_a);
+                double phi = 2 * PI * ksi2;
+                Vec l = glm::normalize(su * glm::cos(phi) * sin_a + sv * glm::sin(phi) * sin_a + sd * cos_a);
+                Intersection i2 = scene.find(Ray(x, l));
+                if (i2.m == s) {
+                    double omega = 2 * PI * (1 - cos_a_max);
+                    e += f * s->e * (glm::dot(l, nl) * omega / PI);
+                }
+            }
+            return i.m->e * E + e + f * radiance(Ray(x, d), depth, 0);
         }
         Ray reflRay(x, glm::reflect(r.d, n));
         if (i.m->m == Material::SPECULAR) {

@@ -1,11 +1,9 @@
 #pragma once
 #include "model.h"
 
-class Scene {
-private:
+struct Scene {
     std::vector<std::shared_ptr<Model>> models;
 
-public:
     Scene(std::initializer_list<Model*> a) :
         models(a.begin(), a.end()) {}
 

@@ -3,9 +3,9 @@
 #include "device.h"
 
 int main(int argc, char** argv) {
-    int w = 160;
-    int h = 120;
-    int spp = argc >= 2 ? atoi(argv[1]) : 100;
+    int w = 200;
+    int h = 150;
+    int spp = argc >= 2 ? atoi(argv[1]) : 4;
     if (argc >= 4) {
         w = atoi(argv[2]);
         h = atoi(argv[3]);
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
     t = glm::scale(t, Vec(8));
     for (Vec& p : vertices) {
         p = Vec(t * glm::dvec4(p, 1.0));
-        printf("(%.2f, %.2f, %.2f)\n", p.x, p.y, p.z);
+        printf("(%6.2f, %6.2f, %6.2f)\n", p.x, p.y, p.z);
     }
     Scene scene {
         new Plane(Vec(-1, 0, 0), Vec(-50, 0, 0), Vec(0.75, 0.25, 0.25)),
@@ -51,7 +51,8 @@ int main(int argc, char** argv) {
         new Plane(Vec(0, -1, 0), Vec(0, 100, 0), Vec(0.75)),
         new Sphere(16, Vec(-25, 16, 25), Vec(1), Material::SPECULAR),
         new Sphere(16, Vec(+25, 16, 50), Vec(1), Material::REFRACTION),
-        new Sphere(600, Vec(0, 700 - 0.3, 50), Vec(0), Material::DIFFUSE, Vec(12)),
+        // new Sphere(600, Vec(0, 700 - 0.3, 50), Vec(0), Material::DIFFUSE, Vec(12)),
+        new Sphere(1.5, Vec(0, 80, 50), Vec(0), Material::DIFFUSE, Vec(400)),
         new Mesh(vertices, indices, Vec(0.25, 0.75, 0.25)),
     };
     Camera cam(Vec(0, 50, 225), Vec(0, 0, -1), (double) w / h);
