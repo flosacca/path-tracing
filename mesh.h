@@ -78,34 +78,22 @@ struct Triangle {
 struct Mesh : Model {
     using Index = std::array<int, 3>;
 
+    std::vector<Triangle> t;
     BVH<Triangle> bvh;
 
-    Mesh(
-        const std::vector<Triangle>& triangles,
-        const Vec& color,
-        Material material = Material::DIFFUSE,
-        const Vec& emission = Vec(0)
-    ) : Model(emission, color, material), bvh(triangles) {}
-
-    template <typename... Args>
-    Mesh(
-        const std::vector<Vec>& vertices,
-        const std::vector<Index>& indices,
-        Args&&... args
-    ) : Mesh(buildTriangles(vertices, indices), std::forward<Args>(args)...) {}
-
-    static std::vector<Triangle> buildTriangles(
-        const std::vector<Vec>& vertices,
-        const std::vector<Index>& indices
-    ) {
-        std::vector<Triangle> triangles;
+    Mesh(const std::vector<Vec>& vertices,
+         const std::vector<Index>& indices,
+         const Vec& color,
+         Material material = Material::DIFFUSE,
+         const Vec& emission = Vec(0))
+        : Model(emission, color, material) {
         for (const auto& index : indices) {
             const Vec& a = vertices[index[0]];
             const Vec& b = vertices[index[1]];
             const Vec& c = vertices[index[2]];
-            triangles.emplace_back(a, b, c);
+            t.push_back({a, b, c});
         }
-        return triangles;
+        bvh.build(t.begin(), t.end());
     }
 
     void intersect(const Ray& r, Intersection& s) const {

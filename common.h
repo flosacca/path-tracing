@@ -5,9 +5,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <random>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 using Vec = glm::dvec3;
@@ -92,3 +95,20 @@ struct Intersection {
 inline bool operator<(const Intersection& a, const Intersection& b) {
     return a.t < b.t;
 }
+
+struct Recursive {
+    template <typename F>
+    struct Y {
+        F f;
+
+        template <typename... Args>
+        decltype(auto) operator()(Args&&... args) const {
+            return f(std::cref(*this), std::forward<Args>(args)...);
+        }
+    };
+
+    template <typename F>
+    static Y<std::decay_t<F>> of(F&& f) {
+        return {f};
+    }
+};
