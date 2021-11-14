@@ -68,6 +68,7 @@ public:
             Vec u = ortho(w);
             Vec v = glm::cross(w, u);
             Vec d = glm::normalize(u * glm::cos(r1) * r2s + v * glm::sin(r1) * r2s + w * glm::sqrt(1 - r2));
+#ifdef LIGHT_SAMPLING
             Vec e(0);
             for (const auto& p : scene.models){
                 Sphere* s = dynamic_cast<Sphere*>(p.get());
@@ -95,6 +96,9 @@ public:
                 }
             }
             return i.m->e * E + e + f * radiance(Ray(x, d), depth, 0);
+#else
+            return i.m->e + f * radiance(Ray(x, d), depth);
+#endif
         }
         Ray reflRay(x, glm::reflect(r.d, n));
         if (i.m->m == Material::SPECULAR) {

@@ -1,17 +1,4 @@
 #pragma once
-#include <algorithm>
-#include <array>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <functional>
-#include <limits>
-#include <memory>
-#include <random>
-#include <type_traits>
-#include <utility>
-#include <vector>
 
 using Vec = glm::dvec3;
 
