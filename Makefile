@@ -7,9 +7,9 @@ PCH := build/glm_all.gch
 all: mkdir main
 
 main: $(PCH) $(OBJS) FORCE
-	g++ -o $@ $(CXXFLAGS) -include $(PCH:.gch=) main.cc $(OBJS)
+	g++ -o $@ $(CXXFLAGS) -include $(PCH:.gch=) src/main.cc $(OBJS)
 
-$(PCH): glm_all.h
+$(PCH): src/glm_all.h
 	g++ -c -o $@ $(CXXFLAGS) $<
 
 build/image.o: lib/stb_image_write.h
