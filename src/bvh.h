@@ -54,6 +54,11 @@ struct Box {
         }
         return {p1, p2};
     }
+
+    template <typename It>
+    static Box fromRange(It l, It r) {
+        return fromRange(l, r, [] (const Vec& v) { return v; });
+    }
 };
 
 template <typename T>
@@ -86,6 +91,9 @@ struct BVH {
             mids.push_back(box.p1 + box.p2);
             indices.push_back(n++);
         }
+        if (n == 0) {
+            return;
+        }
         t.resize(size(n));
         auto f = indices.data();
         auto p = [&] (int i) -> const Vec& {
@@ -110,6 +118,9 @@ struct BVH {
     }
 
     void intersect(const Ray& r, Intersection& s) const {
+        if (n == 0) {
+            return;
+        }
         Recursive::of([&] (auto dfs, int i, int j, int k) -> void {
             if (j - i == 1) {
                 t[k].v->intersect(r, s);

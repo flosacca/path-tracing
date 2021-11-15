@@ -42,7 +42,8 @@ public:
                             double nx = (x * 2 + dx + i + 0.5) / w - 1;
                             double ny = (y * 2 + dy + j + 0.5) / h - 1;
                             Ray ray(origin, glm::normalize(nx * right + ny * up + dir));
-                            r += tracer.radiance(ray, 0);
+                            r += tracer.radiance(ray);
+                            // r += glm::clamp(tracer.radiance(ray), 0.0, 1.0);
                         }
                         c += glm::clamp(r / (double) n, 0.0, 1.0);
                     }

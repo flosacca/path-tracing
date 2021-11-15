@@ -84,7 +84,7 @@ struct Mesh : Model {
     Mesh(const std::vector<Vec>& vertices,
          const std::vector<Index>& indices,
          const Vec& color,
-         Material material = Material::DIFFUSE,
+         Material material = Material::diffuse(),
          const Vec& emission = Vec(0))
         : Model(emission, color, material) {
         for (const auto& index : indices) {
@@ -103,7 +103,7 @@ struct Mesh : Model {
         }
     }
 
-    Intersection find(const Ray& r) const {
+    Intersection find(const Ray& r) const override {
         Intersection s;
         intersect(r, s);
         return s;
