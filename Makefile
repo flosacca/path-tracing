@@ -1,7 +1,7 @@
 CFLAGS := -O3
-CXXFLAGS := -std=c++17 -fopenmp -O3 -mavx2 -Ilib
+CXXFLAGS := -std=c++14 -fopenmp -O3 -mavx2 -Ilib
 
-OBJS := build/image.o build/ply.o
+OBJS := build/image.o build/scene.o lib/libyaml-cpp.a
 PCH := build/all.gch
 
 all: mkdir main
@@ -12,7 +12,7 @@ main: $(PCH) $(OBJS) FORCE
 $(PCH): src/all.h
 	g++ -c -o $@ $(CXXFLAGS) $<
 
-build/ply.o: src/ply.cc $(PCH)
+build/scene.o: src/scene.cc $(PCH)
 	g++ -c -o $@ $(CXXFLAGS) -include $(PCH:.gch=) $<
 
 build/image.o: lib/stb_image_write.h

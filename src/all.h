@@ -20,3 +20,5 @@
 #include <glm/gtx/component_wise.hpp>
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtx/norm.hpp>
+
+#include <yaml-cpp/yaml.h>

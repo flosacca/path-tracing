@@ -1,5 +1,7 @@
 #pragma once
 
+using Yaml = YAML::Node;
+
 struct Recursive {
     template <typename F>
     struct Y {

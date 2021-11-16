@@ -26,6 +26,7 @@ public:
         int n = spp / 4;
         int w = device.width();
         int h = device.height();
+        fprintf(stderr, "Start rendering with width = %d, height = %d, spp = %d\n", w, h, spp);
         int s = 0;
         #pragma omp parallel for schedule(dynamic, 1)
         for (int y = 0; y < h; y++) {
@@ -43,7 +44,6 @@ public:
                             double ny = (y * 2 + dy + j + 0.5) / h - 1;
                             Ray ray(origin, glm::normalize(nx * right + ny * up + dir));
                             r += tracer.radiance(ray);
-                            // r += glm::clamp(tracer.radiance(ray), 0.0, 1.0);
                         }
                         c += glm::clamp(r / (double) n, 0.0, 1.0);
                     }
@@ -51,7 +51,7 @@ public:
                 device.set(x, y, c / 4.0);
                 #pragma omp atomic
                 ++s;
-                fprintf(stderr, "\rRendering (%d spp) %5.2f%%", spp, 100.0 * s / (w * h));
+                fprintf(stderr, "\rRendered: %5.2f%%", 100.0 * s / (w * h));
                 if (s == w * h) {
                     fputs("\n", stderr);
                 }
