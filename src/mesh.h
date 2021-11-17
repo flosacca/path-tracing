@@ -32,12 +32,12 @@ struct Triangle {
         double s = 1 / d;
         Vec u = r.o - p[0];
         double l1 = s * glm::dot(v1, u);
-        if (!num::exclusive(l1, 0, 1)) {
+        if (!num::inclusive(l1, 0, 1)) {
             return false;
         }
         Vec v2 = glm::cross(u, e1);
         double l2 = s * glm::dot(v2, r.d);
-        if (!num::exclusive(l2, 0, 1 - l1)) {
+        if (!num::inclusive(l2, 0, 1 - l1)) {
             return false;
         }
         t = s * glm::dot(v2, e2);

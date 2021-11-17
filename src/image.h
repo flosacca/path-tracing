@@ -28,7 +28,7 @@ public:
         p[2] = ldr.z;
     }
 
-    void save(const char* filename) const {
-        stbi_write_png(filename, w, h, 3, s.data(), 0);
+    void save(const std::string& path) const {
+        stbi_write_png(path.data(), w, h, 3, s.data(), 0);
     }
 };

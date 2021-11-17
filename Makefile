@@ -4,6 +4,7 @@ CXXFLAGS = -std=c++14 -fopenmp -O3 -mavx2 $(INCLUDES)
 INCLUDES := -Ilib -Ilib/yaml-cpp/include
 OBJS := build/main.o build/scene.o build/image.o build/libyaml-cpp.a
 PCH := build/all.gch
+HEADERS := $(wildcard src/*.h)
 
 all: mkdir main
 
@@ -12,7 +13,7 @@ main: $(OBJS)
 
 build/main.o: FORCE
 
-build/%.o: src/%.cc $(PCH)
+build/%.o: src/%.cc $(PCH) $(HEADERS)
 	g++ -c -o $@ $(CXXFLAGS) -include $(PCH:.gch=) $<
 
 $(PCH): src/all.h
@@ -28,7 +29,7 @@ build/libyaml-cpp.a:
 		&& mv libyaml-cpp.a ..
 
 clean:
-	rm -rf build
+	rm -f build/*.o build/*.gch
 
 mkdir:
 	@mkdir -p build/yaml-cpp

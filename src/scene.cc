@@ -25,13 +25,17 @@ Scene Scene::load(const Yaml& models) {
             std::vector<Vec> a;
             std::vector<Mesh::Index> b;
             loadPly(q("model"), a, b);
-            glm::dmat3 f(fetch(t["scale"], 1.0));
-            if (auto r = t["rotate"]) {
-                f = glm::rotate(glm::dmat4(f), s0(r)(0), v0(r)(1));
-            }
+            double s = fetch(t["scale"], 1.0);
             Vec w = v("translate");
-            for (Vec& p : a) {
-                p = f * p + w;
+            if (auto r = t["rotate"]) {
+                glm::dmat3 f = s * glm::rotate(glm::radians(s0(r)(0)), v0(r)(1));
+                for (Vec& p : a) {
+                    p = f * p + w;
+                }
+            } else {
+                for (Vec& p : a) {
+                    p = s * p + w;
+                }
             }
             scene.add<Mesh>(a, b, c, m, e);
         }

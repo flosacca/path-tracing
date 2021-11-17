@@ -1,9 +1,9 @@
 /build/
 /lib/
 /models/
+/tmp/
 
 /main
 /run.mk
-/TODO.md
 
 *.png

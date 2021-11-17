@@ -22,7 +22,7 @@ struct Box {
                 }
             }
         }
-        return num::less(t.x, t.y) && num::greater(t.y, 0);
+        return num::lessEqual(t.x, t.y) && num::greater(t.y, 0);
     }
 
     Vec shape() const {

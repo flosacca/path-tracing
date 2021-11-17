@@ -1,6 +1,8 @@
 image:
   size: [200, 150]
   spp: 100
+camera:
+  {origin: [10, 55, 400], direction: [0, -0.02, -1], fov: 25}
 scene:
   - {type: plane, normal: [+1, 0, 0], point: [-50, 0, 0], color: [0.75, 0.25, 0.25]}
   - {type: plane, normal: [-1, 0, 0], point: [+50, 0, 0], color: [0.25, 0.25, 0.75]}

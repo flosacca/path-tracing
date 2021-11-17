@@ -58,4 +58,12 @@ public:
             }
         }
     }
+
+    static Camera load(const Yaml& c, double aspect) {
+        auto v = helper::bind<Vec>(c);
+        Vec o = v("origin");
+        Vec d = v("direction");
+        double fov = glm::radians(helper::fetch(c["fov"], 45.0));
+        return Camera(o, d, aspect, fov);
+    }
 };
