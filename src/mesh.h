@@ -1,6 +1,7 @@
 #pragma once
 #include "model.h"
 #include "bvh.h"
+#include "image.h"
 
 #ifndef RAY_TRIANGLE_OPTION
 #define RAY_TRIANGLE_OPTION 1
@@ -9,10 +10,6 @@
 struct Triangle {
     Vec p[3];
     Vec n;
-
-    Triangle(const Vec& a, const Vec& b, const Vec& c) :
-        p {a, b, c},
-        n(glm::normalize(glm::cross(a - c, b - c))) {}
 
     bool intersect(const Ray& r, double& t) const {
 #if RAY_TRIANGLE_OPTION == 0
@@ -75,26 +72,24 @@ struct Triangle {
     }
 };
 
-struct Mesh : Model {
+class Mesh : public Model {
+public:
     using Index = std::array<int, 3>;
-
-    std::vector<Triangle> t;
-    BVH<Triangle> bvh;
 
     Mesh(const std::vector<Vec>& vertices,
          const std::vector<Index>& indices,
          const Vec& color,
          Material material = Material::diffuse(),
          const Vec& emission = Vec(0))
-        : Model(emission, color, material) {
-        for (const auto& index : indices) {
-            const Vec& a = vertices[index[0]];
-            const Vec& b = vertices[index[1]];
-            const Vec& c = vertices[index[2]];
-            t.push_back({a, b, c});
-        }
-        bvh.build(t.begin(), t.end());
-    }
+        : Mesh(vertices, indices, {}, {}, color, material, emission) {}
+
+    Mesh(const std::vector<Vec>& vertices,
+         const std::vector<Index>& indices,
+         const Image& texture,
+         const std::vector<glm::dvec2>& uvs,
+         Material material = Material::diffuse(),
+         const Vec& emission = Vec(0))
+        : Mesh(vertices, indices, texture, uvs, {}, material, emission) {}
 
     void intersect(const Ray& r, Intersection& s) const {
         bvh.intersect(r, s);
@@ -107,5 +102,34 @@ struct Mesh : Model {
         Intersection s;
         intersect(r, s);
         return s;
+    }
+
+private:
+    std::vector<Vec> vertices;
+    std::vector<Index> indices;
+    std::vector<Triangle> triangles;
+    BVH<Triangle> bvh;
+    Image texture;
+    std::vector<glm::dvec2> uvs;
+
+    Mesh(const std::vector<Vec>& vertices,
+         const std::vector<Index>& indices,
+         const Image& texture,
+         const std::vector<glm::dvec2>& uvs,
+         const Vec& color,
+         Material material,
+         const Vec& emission)
+        : Model(color, emission, material),
+          vertices(vertices),
+          indices(indices),
+          texture(texture),
+          uvs(uvs) {
+        for (const auto& index : indices) {
+            const Vec& a = vertices[index[0]];
+            const Vec& b = vertices[index[1]];
+            const Vec& c = vertices[index[2]];
+            triangles.push_back({a, b, c, glm::normalize(glm::cross(b - a, c - a))});
+        }
+        bvh.build(triangles);
     }
 };

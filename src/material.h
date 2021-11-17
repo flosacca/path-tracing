@@ -5,7 +5,7 @@ struct Material {
     struct Tracing {
         int depth;
         const Ray& ray;
-        const Intersection& intersection;
+        const Intersection& i;
         Sampler& sampler;
         const std::function<Vec(const Ray&)>& callback;
 
@@ -21,23 +21,25 @@ struct Material {
     struct Diffuse : Base {
         Vec radiance(Tracing&& tracing) const override {
             auto& r = tracing.ray;
-            auto& s = tracing.intersection;
             auto& a = tracing.sampler;
-            Vec n = s.n * std::copysign(1.0, -glm::dot(r.d, s.n));
+            Vec n = tracing.i.n;
+            Vec x = r(tracing.i.t);
+            double l = glm::dot(r.d, n);
             double phi = a.uniform(2 * PI);
             double rho = glm::sqrt(a.uniform());
-            Vec d = num::unit::from_rho(phi, rho, n);
-            return tracing(Ray(r(s.t), d));
+            Vec d = num::unit::from_rho(phi, rho, std::copysign(1.0, -l) * n);
+            return tracing(Ray(x, d));
         }
     };
 
     struct Specular : Base {
         Vec radiance(Tracing&& tracing) const override {
             auto& r = tracing.ray;
-            auto& s = tracing.intersection;
-            double l = glm::dot(r.d, s.n);
-            Vec d = r.d - 2.0 * l * s.n;
-            return tracing(Ray(r(s.t), d));
+            Vec n = tracing.i.n;
+            Vec x = r(tracing.i.t);
+            double l = glm::dot(r.d, n);
+            Vec d = r.d - 2.0 * l * n;
+            return tracing(Ray(x, d));
         }
     };
 
@@ -48,20 +50,20 @@ struct Material {
 
         Vec radiance(Tracing&& tracing) const override {
             auto& r = tracing.ray;
-            auto& s = tracing.intersection;
-            double l = glm::dot(r.d, s.n);
+            Vec n = tracing.i.n;
+            Vec x = r(tracing.i.t);
+            double l = glm::dot(r.d, n);
             constexpr double n0 = 1;
-            double eta = std::signbit(l) ? n0 / n : n / n0;
+            double eta = std::signbit(l) ? n0 / this->n : this->n / n0;
             double k2 = 1 - eta * eta * (1 - l * l);
-            Vec d = r.d - 2.0 * l * s.n;
+            Vec d = r.d - 2.0 * l * n;
             if (num::lessEqual(k2, 0)) {
-                return tracing(Ray(r(s.t), d));
+                return tracing(Ray(x, d));
             }
             double k = glm::sqrt(k2);
-            Vec t = eta * r.d - (eta * l + std::copysign(k, -l)) * s.n;
-            double R0 = num::pow<2>((n - n0) / (n + n0));
+            Vec t = eta * r.d - (eta * l + std::copysign(k, -l)) * n;
+            double R0 = num::pow<2>((this->n - n0) / (this->n + n0));
             double R = R0 + (1 - R0) * num::pow<5>(1 - std::min(k, glm::abs(l)));
-            Vec x = r(s.t);
             if (tracing.depth <= 2) {
                 return R * tracing(Ray(x, d)) + (1 - R) * tracing(Ray(x, t));
             }

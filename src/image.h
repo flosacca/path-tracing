@@ -3,14 +3,15 @@
 
 class Image {
 private:
-    const int w;
-    const int h;
+    int w, h;
     std::shared_ptr<uint8_t> p;
 
     Image(int w, int h, std::shared_ptr<uint8_t> p) :
         w(w), h(h), p(p) {}
 
 public:
+    Image() {}
+
     Image(int w, int h);
 
     int width() const {

@@ -1,7 +1,6 @@
 #include <omp.h>
 #include "mesh.h"
 #include "camera.h"
-#include "image.h"
 
 int main(int argc, char** argv) {
     int w = 800;

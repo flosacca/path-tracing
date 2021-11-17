@@ -2,11 +2,12 @@
 #include "material.h"
 
 struct Model {
-    Vec e, c;
+    Vec c;
+    Vec e;
     Material m;
 
-    Model(const Vec& e, const Vec& c, Material m) :
-        e(e), c(c), m(m) {}
+    Model(const Vec& c, const Vec& e, Material m) :
+        c(c), e(e), m(m) {}
 
     virtual Intersection find(const Ray&) const = 0;
 };
@@ -17,7 +18,7 @@ struct Sphere : Model {
 
     Sphere(double r, const Vec& o, const Vec& c,
         Material m = Material::diffuse(), const Vec& e = Vec(0)) :
-        Model(e, c, m), r(r), o(o) {}
+        Model(c, e, m), r(r), o(o) {}
 
     Intersection find(const Ray& ray) const override {
         Vec v = o - ray.o;
@@ -42,7 +43,7 @@ struct Plane : Model {
 
     Plane(const Vec& n, const Vec& p, const Vec& c,
         Material m = Material::diffuse(), const Vec& e = Vec(0)) :
-        Model(e, c, m), n(n), p(p) {}
+        Model(c, e, m), n(n), p(p) {}
 
     Intersection find(const Ray& r) const override {
         double d = glm::dot(r.d, n);

@@ -63,12 +63,8 @@ struct Box {
 
 template <typename T>
 struct BVH {
-    struct Node {
-        Box s;
-        const T* v;
-    };
-
-    std::vector<Node> t;
+    std::vector<Box> tree;
+    std::vector<const T*> leaves;
     int n = 0;
 
     static int size(int n) {
@@ -81,40 +77,48 @@ struct BVH {
     template <typename It>
     void build(It first, It last) {
         It w = first;
-        std::vector<Node> leaves;
-        std::vector<Vec> mids;
-        std::vector<int> indices;
+        struct Cache {
+            const T* obj;
+            Box box;
+            Vec mid;
+        };
+        std::vector<Cache> caches;
         while (first != last) {
             const T& e = *first++;
             Box box = e.box();
-            leaves.push_back({box, &e});
-            mids.push_back(box.p1 + box.p2);
-            indices.push_back(n++);
+            caches.push_back({&e, box, box.p1 + box.p2});
         }
+        n = caches.size();
         if (n == 0) {
             return;
         }
-        t.resize(size(n));
-        auto f = indices.data();
-        auto p = [&] (int i) -> const Vec& {
-            return mids[i];
+        leaves.resize(n);
+        tree.resize(size(n));
+        auto p = caches.data();
+        auto f = [] (const Cache& cache) {
+            return cache.mid;
         };
         Recursive::of([&] (auto dfs, int i, int j, int k) -> void {
             if (j - i == 1) {
-                t[k] = leaves[f[i]];
+                leaves[i] = p[i].obj;
+                tree[k] = p[i].box;
             } else {
-                Vec s = Box::fromRange(f + i, f + j, p).shape();
+                Vec s = Box::fromRange(p + i, p + j, f).shape();
                 double c[3] = {s.x, s.y, s.z};
                 int d = std::max_element(c, c + 3) - c;
                 int m = (i + j) / 2;
-                std::nth_element(f + i, f + m, f + j, [&] (int u, int v) {
-                    return p(u)[d] < p(v)[d];
+                std::nth_element(p + i, p + m, p + j, [&] (const Cache& a, const Cache& b) {
+                    return a.mid[d] < b.mid[d];
                 });
                 dfs(i, m, k * 2);
                 dfs(m, j, k * 2 + 1);
-                t[k].s = Box::merge(t[k * 2].s, t[k * 2 + 1].s);
+                tree[k] = Box::merge(tree[k * 2], tree[k * 2 + 1]);
             }
         })(0, n, 1);
+    }
+
+    void build(const std::vector<T>& a) {
+        build(a.begin(), a.end());
     }
 
     void intersect(const Ray& r, Intersection& s) const {
@@ -122,9 +126,11 @@ struct BVH {
             return;
         }
         Recursive::of([&] (auto dfs, int i, int j, int k) -> void {
-            if (j - i == 1) {
-                t[k].v->intersect(r, s);
-            } else if (t[k].s.intersects(r)) {
+            if (j - i <= 4) {
+                for (; i < j; ++i) {
+                    leaves[i]->intersect(r, s);
+                }
+            } else if (tree[k].intersects(r)) {
                 int m = (i + j) / 2;
                 dfs(i, m, k * 2);
                 dfs(m, j, k * 2 + 1);
