@@ -148,20 +148,3 @@ struct Ray {
         return o + t * d;
     }
 };
-
-class Model;
-
-struct Intersection {
-    double t;
-    Vec n;
-    const Model* m;
-
-    Intersection(double t, const Vec& n, const Model* m) :
-        t(t), n(n), m(m) {}
-
-    Intersection() : t(INF), n(0), m(nullptr) {}
-};
-
-inline bool operator<(const Intersection& a, const Intersection& b) {
-    return a.t < b.t;
-}

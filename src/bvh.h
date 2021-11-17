@@ -121,7 +121,8 @@ struct BVH {
         build(a.begin(), a.end());
     }
 
-    void intersect(const Ray& r, Intersection& s) const {
+    template <typename S>
+    void intersect(const Ray& r, S& s) const {
         if (n == 0) {
             return;
         }

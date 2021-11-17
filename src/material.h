@@ -1,6 +1,11 @@
 #pragma once
 #include "sampler.h"
 
+struct Intersection {
+    double t = INF;
+    Vec n;
+};
+
 struct Material {
     struct Tracing {
         int depth;
@@ -77,7 +82,7 @@ struct Material {
         }
     };
 
-    const std::shared_ptr<const Base> p;
+    std::shared_ptr<const Base> p;
 
     Vec radiance(Tracing&& tracing) const {
         return p->radiance(std::forward<Tracing>(tracing));
