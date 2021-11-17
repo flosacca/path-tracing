@@ -11,16 +11,11 @@ all: mkdir main
 main: $(OBJS)
 	g++ -o $@ $(CXXFLAGS) $^
 
-build/main.o: FORCE
-
 build/%.o: src/%.cc $(PCH) $(HEADERS)
 	g++ -c -o $@ $(CXXFLAGS) -include $(PCH:.gch=) $<
 
 $(PCH): src/all.h
 	g++ -c -o $@ $(CXXFLAGS) $<
-
-build/image.o: lib/stb_image_write.h
-	gcc -c -o $@ $(CFLAGS) -DSTB_IMAGE_WRITE_IMPLEMENTATION -x c $<
 
 build/libyaml-cpp.a:
 	cd build/yaml-cpp \
