@@ -6,20 +6,19 @@ private:
     Vec origin, dir, right, up;
 
 public:
-    Camera(const Vec& origin,
-        const Vec& direction,
-        double aspect,
-        double fov = PI / 4,
-        const Vec& worldUp = Vec(0, 1, 0)) :
-        origin(origin),
-        dir(direction),
-        right(glm::cross(dir, worldUp)),
-        up(glm::cross(right, dir))
-    {
-        double k = glm::tan(fov / 2);
-        right *= k / glm::length(right) * aspect;
-        up *= k / glm::length(up);
-    }
+	Camera(const Vec& origin,
+		   const Vec& direction,
+		   double aspect,
+		   double fov = PI / 4,
+		   const Vec& worldUp = Vec(0, 1, 0))
+		: origin(origin),
+		  dir(direction),
+		  right(glm::cross(dir, worldUp)),
+		  up(glm::cross(right, dir)) {
+		double k = glm::tan(fov / 2);
+		right *= k / glm::length(right) * aspect;
+		up *= k / glm::length(up);
+	}
 
     template <typename Device>
     void render(const Scene& scene, Device& device, int spp) {

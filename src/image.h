@@ -4,15 +4,15 @@
 class Image {
 private:
     int w, h;
-    std::shared_ptr<uint8_t> a;
+    std::vector<Vec> a;
 
-    Image(int w, int h, std::shared_ptr<uint8_t> a) :
-        w(w), h(h), a(a) {}
+    Image(int w, int h, uint8_t* p);
 
 public:
     Image() {}
 
-    Image(int w, int h);
+    Image(int w, int h) :
+        w(w), h(h), a(w * h) {}
 
     int width() const {
         return w;
@@ -22,27 +22,14 @@ public:
         return h;
     }
 
-    uint8_t* pixel(int i, int j) {
-        return a.get() + (w * j + i) * 3;
-    }
-
-    const uint8_t* pixel(int i, int j) const {
-        return const_cast<Image*>(this)->pixel(i, j);
-    }
-
     void set(int i, int j, const Vec& c) {
-        Vec s = glm::pow(c, Vec(1 / 2.2)) * 255.0 + 0.5;
-        uint8_t* p = pixel(i, j);
-        p[0] = s.r;
-        p[1] = s.g;
-        p[2] = s.b;
+        a[w * j + i] = c;
     }
 
-    Vec get(double x, double y) const {
-        int i = x * (w - 1) + 0.5;
-        int j = y * (h - 1) + 0.5;
-        const uint8_t* p = pixel(i, h - j - 1);
-        return glm::pow(Vec(p[0], p[1], p[2]) / 255.0, Vec(2.2));
+    Vec sample(double u, double v) const {
+        int i = u * (w - 1) + 0.5;
+        int j = v * (h - 1) + 0.5;
+        return a[w * (h - j - 1) + i];
     }
 
     void save(const std::string& path) const;

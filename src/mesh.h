@@ -32,7 +32,7 @@ public:
             } else {
                 auto&& e = b[s.p - a.data()];
                 glm::dvec2 p = e[0] + s.l1 * e[1] + s.l2 * e[2];
-                Vec c = im.get(p.x, p.y);
+                Vec c = im.sample(p.x, p.y);
                 d.v = {c, meta.e, meta.m};
             }
         }
