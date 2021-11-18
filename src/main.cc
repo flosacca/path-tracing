@@ -1,3 +1,4 @@
+#include <omp.h>
 #include "mesh.h"
 #include "camera.h"
 #include "image.h"
@@ -7,6 +8,9 @@ int main(int argc, char** argv) {
     int h = w / 4 * 3;
     int spp = 1000;
     auto conf = YAML::LoadFile(argc > 1 ? argv[1] : "config.yml");
+    if (int n = helper::fetch(conf["threads"], 0)) {
+        omp_set_num_threads(n);
+    }
     std::string p = "output.png";
     if (auto meta = conf["image"]) {
         if (auto size = meta["size"]) {
