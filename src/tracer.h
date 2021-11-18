@@ -32,14 +32,14 @@ public:
         ++d;
         double p = 1;
         if (d >= 5) {
-            p = glm::compMax(s.m.c);
+            p = glm::compMax(s.v.c);
             if (d >= 20) {
                 p = std::min(p, 0.9);
             }
             if (a.uniform() > p) {
-                return s.m.e;
+                return s.v.e;
             }
         }
-        return s.m.e + s.m.c / p * s.m.m.radiance({d, r, s.i, a, f});
+        return s.v.e + s.v.c / p * s.v.m.radiance({d, r, s.i, a, f});
     }
 };

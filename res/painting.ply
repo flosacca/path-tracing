@@ -4,17 +4,19 @@ element vertex 8
 property float x
 property float y
 property float z
+property float u
+property float v
 element face 12
 property list uchar int vertex_indices
 end_header
-+16.0 +9.0 +1.0
--16.0 +9.0 +1.0
--16.0 -9.0 +1.0
-+16.0 -9.0 +1.0
-+16.0 +9.0 -1.0
--16.0 +9.0 -1.0
--16.0 -9.0 -1.0
-+16.0 -9.0 -1.0
++16.0 +9.0 +1.0 1.0 1.0
+-16.0 +9.0 +1.0 0.0 1.0
+-16.0 -9.0 +1.0 0.0 0.0
++16.0 -9.0 +1.0 1.0 0.0
++16.0 +9.0 -1.0 0.0 0.0
+-16.0 +9.0 -1.0 0.0 0.0
+-16.0 -9.0 -1.0 0.0 0.0
++16.0 -9.0 -1.0 0.0 0.0
 3 1 3 0
 3 1 2 3
 3 0 5 1

@@ -2,14 +2,14 @@ image:
   size: [240, 135]
   spp: 100
 camera:
-  {origin: [30, 55, 400], direction: [0, -0.03, -1], fov: 25}
+  {origin: [40, 55, 400], direction: [0, -0.03, -1], fov: 25}
 scene:
   - {type: plane, normal: [+1, 0, 0], point: [-120, 0, 0], color: [0.75, 0.25, 0.25], material: specular}
   - {type: plane, normal: [-1, 0, 0], point: [+120, 0, 0], color: [0.25, 0.25, 0.75], material: specular}
   - {type: mesh, model: res/wall.ply, scale: 60, rotate: [90, [0, 1, 0]], translate: [-60, 60, -3], color: 0.75, material: specular}
   - {type: mesh, model: res/wall.ply, scale: 60, rotate: [90, [0, 1, 0]], translate: [+60, 60, -3], color: 0.75, material: diffuse}
-  - {type: mesh, model: res/painting.ply, scale: 3.5, translate: [61.5, 60, 0], color: [0, 1, 0], material: diffuse}
-  - {type: plane, normal: [0, 0, -1], point: [0, 0, 450], color: [0.25, 0.75, 0.25]}
+  - {type: mesh, model: res/painting.ply, scale: 3.5, translate: [61.5, 60, 0], texture: res/kanata.png}
+  - {type: plane, normal: [0, 0, -1], point: [0, 0, 450], color: [0.25, 0.75, 0.25], material: specular}
   - {type: plane, normal: [0, +1, 0], point: [0, 0, 0], color: 0.75}
   - {type: plane, normal: [0, -1, 0], point: [0, 100, 0], color: 0.75}
   - {type: mesh, model: res/wall.ply, scale: 60, translate: [0, 60, 60], color: [0.6, 0.4, 0.8], material: specular}

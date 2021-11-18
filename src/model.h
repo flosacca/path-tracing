@@ -10,14 +10,14 @@ struct Model {
 
     struct Detail {
         Intersection i;
-        Meta m;
+        Meta v;
     };
 
-    Meta m;
+    Meta meta;
 
     template <typename... Args>
     Model(Args&&... args) :
-        m {std::forward<Args>(args)...} {}
+        meta {std::forward<Args>(args)...} {}
 
     virtual void find(const Ray&, Detail&) const = 0;
 };
@@ -42,7 +42,7 @@ struct Sphere : Model {
                 double t = num::greater(t2, 0) ? t2 : t1;
                 if (t < s.i.t) {
                     Vec n = glm::normalize(ray(t) - o);
-                    s = {{t, n}, m};
+                    s = {{t, n}, meta};
                 }
             }
         }
@@ -61,7 +61,7 @@ struct Plane : Model {
         if (num::nonzero(d)) {
             double t = glm::dot(p - r.o, n) / d;
             if (num::greater(t, 0) && t < s.i.t) {
-                s = {{t, n}, m};
+                s = {{t, n}, meta};
             }
         }
     }

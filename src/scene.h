@@ -22,6 +22,4 @@ struct Scene {
     }
 
     static Scene load(const Yaml& models);
-
-    static void loadPly(const std::string&, std::vector<Vec>&, std::vector<Mesh::Index>&);
 };

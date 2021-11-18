@@ -48,7 +48,7 @@ public:
                         c += glm::clamp(r / (double) n, 0.0, 1.0);
                     }
                 }
-                device.set(x, y, c / 4.0);
+                device.set(x, h - y - 1, c / 4.0);
                 #pragma omp atomic
                 ++s;
                 fprintf(stderr, "\rRendered: %5.2f%%", 100.0 * s / (w * h));

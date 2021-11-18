@@ -6,49 +6,70 @@ Scene Scene::load(const Yaml& models) {
     Scene scene;
     auto v0 = bind<Vec>;
     auto s0 = bind<double>;
+
     for (const Yaml& t : models) {
         auto v = v0(t);
         auto q = bind<std::string>(t);
-        auto k = q("type");
-        Vec c = v("color");
-        Vec e = v("emission");
-        Material m = fetch<Material>(t["material"]);
-        if (k == "plane") {
-            Vec n = v("normal");
-            Vec p = v("point");
-            scene.add<Plane>(n, p, c, m, e);
-        } else if (k == "sphere") {
-            double r = s0(t)("radius");
-            Vec p = v("center");
-            scene.add<Sphere>(r, p, c, m, e);
-        } else if (k == "mesh") {
-            std::vector<Vec> a;
-            std::vector<Mesh::Index> b;
-            loadPly(q("model"), a, b);
+        auto type = q("type");
+
+        Vec color = v("color");
+        Vec emission = v("emission");
+        Material material = fetch<Material>(t["material"]);
+
+        if (type == "plane") {
+            Vec normal = v("normal");
+            Vec point = v("point");
+            scene.add<Plane>(normal, point, color, material, emission);
+
+        } else if (type == "sphere") {
+            double radius = s0(t)("radius");
+            Vec center = v("center");
+            scene.add<Sphere>(radius, center, color, material, emission);
+
+        } else if (type == "mesh") {
+            happly::PLYData ply(q("model"));
+            auto&& vertex_el = ply.getElement("vertex");
+            auto&& prop_x = vertex_el.getProperty<double>("x");
+            auto&& prop_y = vertex_el.getProperty<double>("y");
+            auto&& prop_z = vertex_el.getProperty<double>("z");
+
+            std::vector<Vec> vertices;
+            std::vector<Mesh::Index> indices;
+            for (size_t i = 0; i != prop_x.size(); ++i) {
+                vertices.push_back({prop_x[i], prop_y[i], prop_z[i]});
+            }
+            for (auto&& e : ply.getFaceIndices<int>()) {
+                indices.push_back({ e[0], e[1], e[2] });
+            }
+
             double s = fetch(t["scale"], 1.0);
             Vec w = v("translate");
             if (auto r = t["rotate"]) {
                 glm::dmat3 f = s * glm::rotate(glm::radians(s0(r)(0)), v0(r)(1));
-                for (Vec& p : a) {
+                for (Vec& p : vertices) {
                     p = f * p + w;
                 }
             } else {
-                for (Vec& p : a) {
+                for (Vec& p : vertices) {
                     p = s * p + w;
                 }
             }
-            scene.add<Mesh>(a, b, c, m, e);
+
+            auto im_path = q("texture");
+            if (im_path.size()) {
+                auto&& prop_u = vertex_el.getProperty<double>("u");
+                auto&& prop_v = vertex_el.getProperty<double>("v");
+                std::vector<glm::dvec2> uvs;
+                for (size_t i = 0; i != prop_x.size(); ++i) {
+                    uvs.push_back({prop_u[i], prop_v[i]});
+                }
+                Image texture = Image::load(im_path);
+                scene.add<Mesh>(vertices, indices, texture, uvs, material, emission);
+            } else {
+                scene.add<Mesh>(vertices, indices, color, material, emission);
+            }
         }
     }
-    return scene;
-}
 
-void Scene::loadPly(const std::string& path, std::vector<Vec>& a, std::vector<Mesh::Index>& b) {
-    happly::PLYData f(path);
-    for (auto&& p : f.getVertexPositions()) {
-        a.push_back({p[0], p[1], p[2]});
-    }
-    for (auto&& s : f.getFaceIndices<int>()) {
-        b.push_back({s[0], s[1], s[2]});
-    }
+    return scene;
 }
