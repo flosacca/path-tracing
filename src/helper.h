@@ -1,7 +1,7 @@
 #pragma once
 #include "material.h"
 
-namespace helper {
+namespace hlp {
     template <typename T>
     struct YamlFetcher;
 
@@ -11,30 +11,33 @@ namespace helper {
     }
 
     template <typename T>
-    inline T fetch(const Yaml& v) {
-        return YamlFetcher<T>::call(v);
+    inline auto accessor(const T& d = T()) {
+        return [=] (const Yaml& v) {
+            return [=] (const auto& i) {
+                return fetch(v[i], d);
+            };
+        };
     }
 
     template <typename T>
     struct YamlFetcher {
-        static T call(const Yaml& v, const T& d = T()) {
-            if (!v || !v.IsScalar()) {
-                return d;
-            }
-            return v.as<T>();
+        static T call(const Yaml& v, const T& d) {
+            return v.as<T>(d);
         }
     };
 
     template <>
     struct YamlFetcher<Vec> {
-        static Vec call(const Yaml& v, const Vec& d = Vec(0)) {
+        static Vec call(const Yaml& v, const Vec& d) {
             if (!v) {
                 return d;
             }
             if (v.IsScalar()) {
-                return Vec(v.as<double>());
-            } else if (v.IsSequence()) {
-                return Vec(v[0].as<double>(), v[1].as<double>(), v[2].as<double>());
+                return Vec(fetch(v, 0.0));
+            }
+            if (v.IsSequence()) {
+                auto s = accessor(0.0)(v);
+                return Vec(s(0), s(1), s(2));
             }
             return d;
         }
@@ -42,7 +45,7 @@ namespace helper {
 
     template <>
     struct YamlFetcher<Material> {
-        static Material call(const Yaml& v, const Material& d = Material::diffuse()) {
+        static Material call(const Yaml& v, const Material& d) {
             if (!v) {
                 return d;
             }
@@ -50,23 +53,18 @@ namespace helper {
             if (!k) {
                 return d;
             }
-            auto t = (k & 1 ? v : v[0]).as<std::string>();
+            auto t = fetch(k & 1 ? v : v[0], std::string());
             if (t == "diffuse") {
                 return Material::diffuse();
-            } else if (t == "specular") {
+            }
+            if (t == "specular") {
                 return Material::specular();
-            } else if (t == "refraction") {
+            }
+            if (t == "refraction") {
                 constexpr double n = 1.5;
                 return Material::refraction(k & 1 ? n : fetch(v[1], n));
             }
             return d;
         }
     };
-
-    template <typename T>
-    auto bind(const Yaml& v) {
-        return [&v] (auto&& i) {
-            return fetch<T>(v[i]);
-        };
-    }
 }

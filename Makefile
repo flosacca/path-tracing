@@ -1,4 +1,3 @@
-CFLAGS = -O3
 CXXFLAGS = -std=c++14 -fopenmp -O3 -mavx2 $(INCLUDES)
 
 INCLUDES := -Ilib -Ilib/yaml-cpp/include
@@ -9,13 +8,13 @@ HEADERS := $(wildcard src/*.h)
 all: mkdir main
 
 main: $(OBJS)
-	g++ -o $@ $(CXXFLAGS) $^
+	$(CXX) -o $@ $(CXXFLAGS) $^
 
 build/%.o: src/%.cc $(PCH) $(HEADERS)
-	g++ -c -o $@ $(CXXFLAGS) -include $(PCH:.gch=) $<
+	$(CXX) -c -o $@ $(CXXFLAGS) -include $(PCH:.gch=) $<
 
 $(PCH): src/all.h
-	g++ -c -o $@ $(CXXFLAGS) $<
+	$(CXX) -c -o $@ $(CXXFLAGS) -x c++-header $<
 
 build/libyaml-cpp.a:
 	cd build/yaml-cpp \

@@ -2,19 +2,18 @@
 #include "scene.h"
 
 Scene Scene::load(const Yaml& models) {
-    using namespace helper;
     Scene scene;
-    auto v0 = bind<Vec>;
-    auto s0 = bind<double>;
+    auto v0 = hlp::accessor(Vec(0));
+    auto s0 = hlp::accessor(0.0);
 
     for (const Yaml& t : models) {
         auto v = v0(t);
-        auto q = bind<std::string>(t);
+        auto q = hlp::accessor<std::string>()(t);
         auto type = q("type");
 
         Vec color = v("color");
         Vec emission = v("emission");
-        Material material = fetch<Material>(t["material"]);
+        Material material = hlp::fetch(t["material"], Material::diffuse());
 
         if (type == "plane") {
             Vec normal = v("normal");
@@ -42,7 +41,7 @@ Scene Scene::load(const Yaml& models) {
                 indices.push_back({ e[0], e[1], e[2] });
             }
 
-            double s = fetch(t["scale"], 1.0);
+            double s = hlp::fetch(t["scale"], 1.0);
             Vec w = v("translate");
             if (auto r = t["rotate"]) {
                 glm::dmat3 f = s * glm::rotate(glm::radians(s0(r)(0)), v0(r)(1));

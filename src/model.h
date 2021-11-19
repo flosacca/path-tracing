@@ -20,6 +20,8 @@ struct Model {
         meta {std::forward<Args>(args)...} {}
 
     virtual void find(const Ray&, Detail&) const = 0;
+
+    virtual ~Model() = default;
 };
 
 struct Sphere : Model {
