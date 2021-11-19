@@ -1,3 +1,4 @@
+threads: 4
 image:
   size: [240, 135]
   spp: 100
@@ -14,7 +15,7 @@ scene:
   - {type: plane, normal: [0, -1, 0], point: [0, 100, 0], color: 0.75}
   - {type: mesh, model: res/wall.ply, scale: 60, translate: [0, 60, 60], color: [0.6, 0.4, 0.8], material: specular}
   - {type: sphere, radius: 12, center: [100, 12, 50], color: 1, material: [refraction, 1.55], emission: [0.15, 0.1, 0.2]}
-  - {type: mesh, model: models/stanford/bun_zipper.ply, scale: 150, translate: [101, 19.05195, 50], color: 1, material: [refraction, 1.55], emission: [0.15, 0.1, 0.2]}
+  - {type: mesh, model: models/stanford/bun_zipper.ply, scale: 150, translate: [102.5, 19.0519, 48], color: 1, material: [refraction, 1.55], emission: [0.15, 0.1, 0.2]}
   - {type: sphere, radius: 600, center: [-61.5, 699.7, 50], emission: 12}
   - {type: sphere, radius: 7, center: [-76.000000, 7.000000, 47.000000], color: [0.000000, 0.000000, 0.000000], material: refraction}
   - {type: sphere, radius: 7, center: [-62.000000, 7.000000, 47.000000], color: [0.000000, 0.333333, 0.000000], material: refraction}
