@@ -22,38 +22,20 @@ public:
          const Vec& emission = Vec(0))
         : Mesh(vertices, indices, texture, uvs, {}, material, emission) {}
 
-    void find(const Ray& r, Detail& d) const override {
-        Local s {INF};
+    void find(const Ray& r, Detail& s) const override {
         bvh.intersect(r, s);
-        if (s.t < d.t) {
-            if (b.empty()) {
-                d = {s.t, s.p->n, meta.c, meta.e, meta.m};
-            } else {
-                auto&& e = b[s.p - a.data()];
-                glm::dvec2 p = e[0] + s.l1 * e[1] + s.l2 * e[2];
-                Vec c = im.sample(p.x, p.y);
-                d = {s.t, s.p->n, c, meta.e, meta.m};
-            }
-        }
     }
 
 private:
-    struct Triangle;
-
-    struct Local {
-        double t, l1, l2;
-        const Triangle* p;
-    };
-
     struct Triangle {
-        Vec p[3];
+        Mesh& self;
+        std::array<Vec, 3> p;
         Vec n;
+        std::array<glm::dvec2, 3> q;
 
-        void intersect(const Ray& r, Local& s) const {
-            Vec e1 = p[1] - p[0];
-            Vec e2 = p[2] - p[0];
-            Vec v1 = glm::cross(r.d, e2);
-            double d = glm::dot(v1, e1);
+        void intersect(const Ray& r, Detail& s) const {
+            Vec v1 = glm::cross(r.d, p[2]);
+            double d = glm::dot(v1, p[1]);
             if (num::zero(d)) {
                 return;
             }
@@ -63,19 +45,25 @@ private:
             if (!num::inclusive(l1, 0, 1)) {
                 return;
             }
-            Vec v2 = glm::cross(u, e1);
+            Vec v2 = glm::cross(u, p[1]);
             double l2 = c * glm::dot(v2, r.d);
             if (!num::inclusive(l2, 0, 1 - l1)) {
                 return;
             }
-            double t = c * glm::dot(v2, e2);
+            double t = c * glm::dot(v2, p[2]);
             if (num::greater(t, 0) && t < s.t) {
-                s = {t, l1, l2, this};
+                const Meta& m = self.meta;
+                Vec c = m.c;
+                if (self.has_texture) {
+                    glm::dvec2 p = q[0] + l1 * q[1] + l2 * q[2];
+                    c = self.im.sample(p.x, p.y);
+                }
+                s = {t, n, c, m.e, m.m};
             }
         }
 
         Box box() const {
-            return Box::of(p[0], p[1], p[2]);
+            return Box::of(p[0], p[0] + p[1], p[0] + p[2]);
         }
 
         static double area(const Vec& a, const Vec& b, const Vec& c) {
@@ -83,10 +71,10 @@ private:
         }
     };
 
-    std::vector<Triangle> a;
+    std::vector<Triangle> triangles;
     BVH<Triangle> bvh;
     Image im;
-    std::vector<std::array<glm::dvec2, 3>> b;
+    bool has_texture;
 
     Mesh(const std::vector<Vec>& vertices,
          const std::vector<Index>& indices,
@@ -96,19 +84,22 @@ private:
          Material material,
          const Vec& emission)
         : Model(color, emission, material),
-          im(texture) {
+          im(texture),
+          has_texture(uvs.size()) {
         auto&& p = vertices;
         auto&& q = uvs;
         for (const auto& e : indices) {
             int i = e[0];
             int j = e[1];
             int k = e[2];
-            Vec n = glm::normalize(glm::cross(p[j] - p[i], p[k] - p[i]));
-            a.push_back({p[i], p[j], p[k], n});
-            if (q.size()) {
-                b.push_back({q[i], q[j] - q[i], q[k] - q[i]});
+            std::array<Vec, 3> a = {p[i], p[j] - p[i], p[k] - p[i]};
+            Vec n = glm::normalize(glm::cross(a[1], a[2]));
+            std::array<glm::dvec2, 3> b;
+            if (has_texture) {
+                b = {q[i], q[j] - q[i], q[k] - q[i]};
             }
+            triangles.push_back({*this, a, n, b});
         }
-        bvh.build(a);
+        bvh.build(triangles);
     }
 };
