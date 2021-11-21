@@ -10,7 +10,7 @@ struct Scene {
     Scene(std::initializer_list<Model*> a) :
         models(a.begin(), a.end()) {}
 
-    void find(const Ray& r, Intersection& s) const {
+    void find(const Ray& r, Model::Detail& s) const {
         for (const auto& p : models) {
             p->find(r, s);
         }

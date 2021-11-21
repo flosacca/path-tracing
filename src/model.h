@@ -8,13 +8,18 @@ struct Model {
         Material m;
     };
 
+    struct Detail {
+        Intersection i;
+        const Model* m;
+    };
+
     Meta m;
 
     template <typename... Args>
     Model(Args&&... args) :
         m {std::forward<Args>(args)...} {}
 
-    virtual void find(const Ray&, Intersection&) const = 0;
+    virtual void find(const Ray&, Detail&) const = 0;
 };
 
 struct Sphere : Model {
@@ -25,7 +30,7 @@ struct Sphere : Model {
         Material m = Material::diffuse(), const Vec& e = Vec(0)) :
         Model(c, e, m), r(r), o(o) {}
 
-    void find(const Ray& ray, Intersection& s) const override {
+    void find(const Ray& ray, Detail& s) const override {
         Vec v = o - ray.o;
         double b = glm::dot(v, ray.d);
         double d2 = r * r - (glm::dot(v, v) - b * b);
@@ -35,9 +40,9 @@ struct Sphere : Model {
             if (num::greater(t1, 0)) {
                 double t2 = b - d;
                 double t = num::greater(t2, 0) ? t2 : t1;
-                if (t < s.t) {
+                if (t < s.i.t) {
                     Vec n = glm::normalize(ray(t) - o);
-                    s = {t, n, this};
+                    s = {{t, n}, this};
                 }
             }
         }
@@ -51,12 +56,12 @@ struct Plane : Model {
         Material m = Material::diffuse(), const Vec& e = Vec(0)) :
         Model(c, e, m), n(n), p(p) {}
 
-    void find(const Ray& r, Intersection& s) const override {
+    void find(const Ray& r, Detail& s) const override {
         double d = glm::dot(r.d, n);
         if (num::nonzero(d)) {
             double t = glm::dot(p - r.o, n) / d;
-            if (num::greater(t, 0) && t < s.t) {
-                s = {t, n, this};
+            if (num::greater(t, 0) && t < s.i.t) {
+                s = {{t, n}, this};
             }
         }
     }

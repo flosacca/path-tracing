@@ -26,11 +26,11 @@ public:
          const Vec& emission = Vec(0))
         : Mesh(vertices, indices, texture, uvs, {}, material, emission) {}
 
-    void find(const Ray& r, Intersection& s) const override {
+    void find(const Ray& r, Detail& s) const override {
         Local l;
         bvh.intersect(r, l);
-        if (l.t < s.t) {
-            s = {l.t, l.p->n, this};
+        if (l.t < s.i.t) {
+            s = {{l.t, l.p->n}, this};
         }
     }
 

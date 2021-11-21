@@ -23,9 +23,9 @@ public:
         }) {}
 
     Vec radiance(const Ray& r) {
-        Intersection s;
+        Model::Detail s;
         scene.find(r, s);
-        if (s.t == INF) {
+        if (s.i.t == INF) {
             return Vec(0);
         }
         const Model::Meta& meta = s.m->m;
@@ -41,6 +41,6 @@ public:
                 return meta.e;
             }
         }
-        return meta.e + meta.c / p * meta.m.radiance({d, r, s, a, f});
+        return meta.e + meta.c / p * meta.m.radiance({d, r, s.i, a, f});
     }
 };
