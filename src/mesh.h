@@ -30,7 +30,7 @@ public:
         Local l;
         bvh.intersect(r, l);
         if (l.t < s.i.t) {
-            s = {{l.t, l.p->n}, this};
+            s = {{l.t, l.p->n}, m};
         }
     }
 

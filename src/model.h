@@ -10,7 +10,7 @@ struct Model {
 
     struct Detail {
         Intersection i;
-        const Model* m;
+        Meta m;
     };
 
     Meta m;
@@ -42,7 +42,7 @@ struct Sphere : Model {
                 double t = num::greater(t2, 0) ? t2 : t1;
                 if (t < s.i.t) {
                     Vec n = glm::normalize(ray(t) - o);
-                    s = {{t, n}, this};
+                    s = {{t, n}, m};
                 }
             }
         }
@@ -61,7 +61,7 @@ struct Plane : Model {
         if (num::nonzero(d)) {
             double t = glm::dot(p - r.o, n) / d;
             if (num::greater(t, 0) && t < s.i.t) {
-                s = {{t, n}, this};
+                s = {{t, n}, m};
             }
         }
     }

@@ -28,7 +28,7 @@ public:
         if (s.i.t == INF) {
             return Vec(0);
         }
-        const Model::Meta& meta = s.m->m;
+        const Model::Meta& meta = s.m;
         Guard g {this};
         ++d;
         double p = 1;
