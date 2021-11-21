@@ -2,6 +2,11 @@
 #include "material.h"
 
 struct Model {
+    struct Intersection {
+        double t = INF;
+        Vec n;
+    };
+
     struct Meta {
         Vec c;
         Vec e;
