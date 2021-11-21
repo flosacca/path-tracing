@@ -25,15 +25,14 @@ public:
     void find(const Ray& r, Detail& d) const override {
         Local s {INF};
         bvh.intersect(r, s);
-        if (s.t < d.i.t) {
-            d.i = {s.t, s.p->n};
+        if (s.t < d.t) {
             if (b.empty()) {
-                d.v = meta;
+                d = {s.t, s.p->n, meta.c, meta.e, meta.m};
             } else {
                 auto&& e = b[s.p - a.data()];
                 glm::dvec2 p = e[0] + s.l1 * e[1] + s.l2 * e[2];
                 Vec c = im.sample(p.x, p.y);
-                d.v = {c, meta.e, meta.m};
+                d = {s.t, s.p->n, c, meta.e, meta.m};
             }
         }
     }

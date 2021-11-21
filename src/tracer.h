@@ -70,22 +70,22 @@ public:
     Vec radiance(const Ray& r) {
         Model::Detail s;
         scene.find(r, s);
-        if (s.i.t == INF) {
+        if (s.t == INF) {
             return Vec(0);
         }
         Guard g {this};
         ++d;
         double p = 1;
         if (d >= 5) {
-            p = glm::compMax(s.v.c);
+            p = glm::compMax(s.c);
             if (d >= 20) {
                 p = std::min(p, 0.9);
             }
             if (a.uniform() > p) {
-                return s.v.e;
+                return s.e;
             }
         }
-        Visitor v(*this, Ray(r(s.i.t), r.d), s.i.n);
-        return s.v.e + s.v.c / p * s.v.m.radiance(v);
+        Visitor v(*this, Ray(r(s.t), r.d), s.n);
+        return s.e + s.c / p * s.m.radiance(v);
     }
 };

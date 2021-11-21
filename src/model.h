@@ -2,11 +2,6 @@
 #include "material.h"
 
 struct Model {
-    struct Intersection {
-        double t = INF;
-        Vec n;
-    };
-
     struct Meta {
         Vec c;
         Vec e;
@@ -14,8 +9,11 @@ struct Model {
     };
 
     struct Detail {
-        Intersection i;
-        Meta v;
+        double t = INF;
+        Vec n;
+        Vec c;
+        Vec e;
+        Material m;
     };
 
     Meta meta;
@@ -47,9 +45,9 @@ struct Sphere : Model {
             if (num::greater(t1, 0)) {
                 double t2 = b - d;
                 double t = num::greater(t2, 0) ? t2 : t1;
-                if (t < s.i.t) {
+                if (t < s.t) {
                     Vec n = glm::normalize(ray(t) - o);
-                    s = {{t, n}, meta};
+                    s = {t, n, meta.c, meta.e, meta.m};
                 }
             }
         }
@@ -67,8 +65,8 @@ struct Plane : Model {
         double d = glm::dot(r.d, n);
         if (num::nonzero(d)) {
             double t = glm::dot(p - r.o, n) / d;
-            if (num::greater(t, 0) && t < s.i.t) {
-                s = {{t, n}, meta};
+            if (num::greater(t, 0) && t < s.t) {
+                s = {t, n, meta.c, meta.e, meta.m};
             }
         }
     }
