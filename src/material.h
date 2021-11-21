@@ -1,6 +1,14 @@
 #pragma once
 #include "sampler.h"
 
+class Model;
+
+struct Intersection {
+    double t = INF;
+    Vec n;
+    const Model* m;
+};
+
 struct Material {
     struct Tracing {
         int depth;

@@ -26,20 +26,22 @@ public:
          const Vec& emission = Vec(0))
         : Mesh(vertices, indices, texture, uvs, {}, material, emission) {}
 
-    void intersect(const Ray& r, Intersection& s) const {
-        bvh.intersect(r, s);
-        if (s.t < INF) {
-            s.m = this;
+    void find(const Ray& r, Intersection& s) const override {
+        Local l;
+        bvh.intersect(r, l);
+        if (l.t < s.t) {
+            s = {l.t, l.p->n, this};
         }
     }
 
-    Intersection find(const Ray& r) const override {
-        Intersection s;
-        intersect(r, s);
-        return s;
-    }
-
 private:
+    struct Triangle;
+
+    struct Local {
+        double t = INF;
+        const Triangle* p;
+    };
+
     struct Triangle {
         Vec p[3];
         Vec n;
@@ -88,11 +90,10 @@ private:
             return num::greater(t, 0);
         }
 
-        void intersect(const Ray& r, Intersection& s) const {
+        void intersect(const Ray& r, Local& s) const {
             double t;
             if (intersect(r, t) && t < s.t) {
-                s.t = t;
-                s.n = n;
+                s = {t, this};
             }
         }
 

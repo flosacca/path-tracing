@@ -9,9 +9,11 @@ private:
     int d = 0;
 
     struct Guard {
-        RayTracer* p;
-        Guard(RayTracer* p) : p(p) { ++p->d; }
-        ~Guard() { --p->d; }
+        RayTracer* tracer;
+
+        ~Guard() {
+            --tracer->d;
+        }
     };
 
 public:
@@ -21,22 +23,24 @@ public:
         }) {}
 
     Vec radiance(const Ray& r) {
-        Guard g(this);
-        const Intersection s = scene.find(r);
-        if (!s.m) {
+        Intersection s;
+        scene.find(r, s);
+        if (s.t == INF) {
             return Vec(0);
         }
-        Vec c = s.m->c;
-        double p = glm::compMax(c);
-        if (d >= 20) {
-            p = std::min(p, 0.9);
-        }
+        const Model::Meta& meta = s.m->m;
+        Guard g {this};
+        ++d;
+        double p = 1;
         if (d >= 5) {
-            if (a.uniform() > p) {
-                return s.m->e;
+            p = glm::compMax(meta.c);
+            if (d >= 20) {
+                p = std::min(p, 0.9);
             }
-            c /= p;
+            if (a.uniform() > p) {
+                return meta.e;
+            }
         }
-        return s.m->e + c * s.m->m.radiance({d, r, s, a, f});
+        return meta.e + meta.c / p * meta.m.radiance({d, r, s, a, f});
     }
 };

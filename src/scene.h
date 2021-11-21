@@ -10,12 +10,10 @@ struct Scene {
     Scene(std::initializer_list<Model*> a) :
         models(a.begin(), a.end()) {}
 
-    Intersection find(const Ray& r) const {
-        Intersection s;
+    void find(const Ray& r, Intersection& s) const {
         for (const auto& p : models) {
-            s = std::min(s, p->find(r));
+            p->find(r, s);
         }
-        return s;
     }
 
     template <typename T, typename... Args>
