@@ -1,4 +1,5 @@
 #pragma once
+#include <new>
 #include "common.h"
 
 struct Material {
@@ -42,24 +43,36 @@ struct Material {
         virtual Vec visit(const Refraction&) = 0;
     };
 
-    std::shared_ptr<const Base> p;
+    union Storage {
+        Diffuse d;
+        Specular s;
+        Refraction r;
+    };
+
+    char p[sizeof(Storage)];
 
     Vec radiance(Visitor& v) const {
-        return p->accept(v);
+        return reinterpret_cast<const Base*>(p)->accept(v);
     }
 
     template <typename... Args>
     static Material diffuse(Args&&... args) {
-        return {std::make_shared<Diffuse>(std::forward<Args>(args)...)};
+        Material m;
+        new (m.p) Diffuse(std::forward<Args>(args)...);
+        return m;
     }
 
     template <typename... Args>
     static Material specular(Args&&... args) {
-        return {std::make_shared<Specular>(std::forward<Args>(args)...)};
+        Material m;
+        new (m.p) Specular(std::forward<Args>(args)...);
+        return m;
     }
 
     template <typename... Args>
     static Material refraction(Args&&... args) {
-        return {std::make_shared<Refraction>(std::forward<Args>(args)...)};
+        Material m;
+        new (m.p) Refraction(std::forward<Args>(args)...);
+        return m;
     }
 };
