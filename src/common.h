@@ -2,22 +2,29 @@
 
 using Yaml = YAML::Node;
 
-struct Recursive {
-    template <typename F>
-    struct Y {
-        F f;
+namespace fun {
+    struct Recursive {
+        template <typename F>
+        struct Y {
+            F f;
 
-        template <typename... Args>
-        decltype(auto) operator()(Args&&... args) const {
-            return f(std::cref(*this), std::forward<Args>(args)...);
-        }
+            template <typename... Args>
+            decltype(auto) operator()(Args&&... args) const {
+                return f(std::cref(*this), std::forward<Args>(args)...);
+            }
+        };
     };
 
     template <typename F>
-    static Y<std::decay_t<F>> of(F&& f) {
+    inline Recursive::Y<std::decay_t<F>> recursive(F&& f) {
         return {f};
     }
-};
+
+    template <typename T, typename F>
+    inline std::unique_ptr<T, void (*)(T*)> make_unique(T* p, F f) {
+        return {p, f};
+    }
+}
 
 using Vec = glm::dvec3;
 

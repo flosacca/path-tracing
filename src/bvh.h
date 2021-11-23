@@ -98,7 +98,7 @@ struct BVH {
         auto f = [] (const Cache& cache) {
             return cache.mid;
         };
-        Recursive::of([&] (auto dfs, int i, int j, int k) -> void {
+        fun::recursive([&] (auto dfs, int i, int j, int k) -> void {
             if (j - i == 1) {
                 leaves[i] = p[i].obj;
                 tree[k] = p[i].box;
@@ -126,7 +126,7 @@ struct BVH {
         if (n == 0) {
             return;
         }
-        Recursive::of([&] (auto dfs, int i, int j, int k) -> void {
+        fun::recursive([&] (auto dfs, int i, int j, int k) -> void {
             if (j - i <= 4) {
                 for (; i < j; ++i) {
                     leaves[i]->intersect(r, s);

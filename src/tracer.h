@@ -8,14 +8,6 @@ private:
     Sampler& a;
     int d = 0;
 
-    struct Guard {
-        RayTracer* tracer;
-
-        ~Guard() {
-            --tracer->d;
-        }
-    };
-
     struct Visitor : Material::Visitor {
         RayTracer& self;
         Ray r;
@@ -73,7 +65,9 @@ public:
         if (s.t == INF) {
             return Vec(0);
         }
-        Guard g {this};
+        auto g = fun::make_unique(this, [] (RayTracer* p) {
+            --p->d;
+        });
         ++d;
         double p = 1;
         if (d >= 5) {
