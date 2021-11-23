@@ -16,7 +16,7 @@ private:
         }
     };
 
-    struct Visitor final : Material::Visitor {
+    struct Visitor : Material::Visitor {
         RayTracer& self;
         Ray r;
         Vec n;

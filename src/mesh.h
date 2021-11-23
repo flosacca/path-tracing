@@ -22,7 +22,7 @@ public:
          const Vec& emission = Vec(0))
         : Mesh(vertices, indices, texture, uvs, {}, material, emission) {}
 
-    void find(const Ray& r, Detail& s) const override {
+    void find(const Ray& r, Detail& s) const final {
         bvh.intersect(r, s);
     }
 
