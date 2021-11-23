@@ -41,10 +41,11 @@ Scene Scene::load(const Yaml& models) {
                 indices.push_back({ e[0], e[1], e[2] });
             }
 
-            double s = hlp::fetch(t["scale"], 1.0);
+            Vec s = hlp::fetch(t["scale"], Vec(1));
             Vec w = v("translate");
             if (auto r = t["rotate"]) {
-                glm::dmat3 f = s * glm::rotate(glm::radians(s0(r)(0)), v0(r)(1));
+                glm::dmat3 f = glm::rotate(glm::radians(s0(r)(0)), v0(r)(1));
+                f *= glm::dmat3(glm::scale(s));
                 for (Vec& p : vertices) {
                     p = f * p + w;
                 }

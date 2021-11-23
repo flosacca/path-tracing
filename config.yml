@@ -7,13 +7,13 @@ camera:
 scene:
   - {type: plane, normal: [+1, 0, 0], point: [-120, 0, 0], color: [0.75, 0.25, 0.25], material: specular}
   - {type: plane, normal: [-1, 0, 0], point: [+120, 0, 0], color: [0.25, 0.25, 0.75], material: specular}
-  - {type: mesh, model: res/wall.ply, scale: 60, rotate: [90, [0, 1, 0]], translate: [-60, 60, -3], color: 0.75, material: specular}
-  - {type: mesh, model: res/wall.ply, scale: 60, rotate: [90, [0, 1, 0]], translate: [+60, 60, -3], color: 0.75, material: diffuse}
-  - {type: mesh, model: res/painting.ply, scale: 3.5, translate: [61.5, 60, 0], texture: res/kanata.png}
+  - {type: mesh, model: res/cube.ply, scale: [120, 100, 1], translate: [-120, 0, -1], color: 0.75, material: specular}
+  - {type: mesh, model: res/cube.ply, scale: [120, 100, 1], translate: [0, 0, -1], color: 0.75, material: diffuse}
+  - {type: mesh, model: res/painting.ply, scale: 3.5, translate: [60, 60, 0], texture: res/kanata.png}
   - {type: plane, normal: [0, 0, -1], point: [0, 0, 450], color: [0.25, 0.75, 0.25], material: specular}
   - {type: plane, normal: [0, +1, 0], point: [0, 0, 0], color: 0.75}
   - {type: plane, normal: [0, -1, 0], point: [0, 100, 0], color: 0.75}
-  - {type: mesh, model: res/wall.ply, scale: 60, translate: [0, 60, 60], color: [0.34886483, 0.18354900, 0.46474113], material: specular}
+  - {type: mesh, model: res/cube.ply, scale: [4, 100, 120], translate: [-4, 0, 0], color: [0.52329725, 0.2753235, 0.6971117], material: specular}
   - {type: sphere, radius: 12, center: [100, 12, 50], color: 1, material: [refraction, 1.55], emission: [0.17443242, 0.09177450, 0.23237057]}
   - {type: mesh, model: models/stanford/bun_zipper.ply, scale: 150, translate: [102.5, 19.0519, 48], color: 1, material: [refraction, 1.55], emission: [0.17443242, 0.09177450, 0.23237057]}
   - {type: sphere, radius: 600, center: [-61.5, 699.7, 50], emission: 12}
