@@ -142,6 +142,31 @@ namespace num {
         }
     };
 
+    template <typename T>
+    constexpr inline const T& min(const T& a, const T& b) {
+        return std::min(a, b);
+    }
+
+    template <typename T, typename... Args>
+    constexpr inline const T& min(const T& a, const T& b, const Args&... args) {
+        return num::min(num::min(a, b), args...);
+    }
+
+    template <typename T>
+    constexpr inline const T& max(const T& a, const T& b) {
+        return std::max(a, b);
+    }
+
+    template <typename T, typename... Args>
+    constexpr inline const T& max(const T& a, const T& b, const Args&... args) {
+        return num::max(num::max(a, b), args...);
+    }
+
+    template <typename... Ts>
+    constexpr inline std::size_t max_size() {
+        return num::max(sizeof(Ts)...);
+    }
+
     using namespace eps;
 }
 

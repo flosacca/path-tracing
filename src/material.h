@@ -2,40 +2,17 @@
 #include <new>
 #include "common.h"
 
-struct Material {
-    struct Visitor;
+class Material {
+public:
+    struct Diffuse {};
 
-    struct Base {
-        virtual Vec accept(Visitor&) const = 0;
-    };
+    struct Specular {};
 
-    struct Diffuse final : Base {
-        Vec accept(Visitor& v) const final {
-            return v.visit(*this);
-        }
-    };
-
-    struct Specular final : Base {
-        Vec accept(Visitor& v) const final {
-            return v.visit(*this);
-        }
-    };
-
-    struct Refraction final : Base {
-        double n;
-
-        Refraction(double n = 1.5) : n(n) {}
-
-        Vec accept(Visitor& v) const final {
-            return v.visit(*this);
-        }
+    struct Refraction {
+        double n = 1.5;
     };
 
     struct Visitor {
-        Vec visit(const Base& b) {
-            return b.accept(*this);
-        }
-
         virtual Vec visit(const Diffuse&) = 0;
 
         virtual Vec visit(const Specular&) = 0;
@@ -43,36 +20,38 @@ struct Material {
         virtual Vec visit(const Refraction&) = 0;
     };
 
-    union Storage {
-        Diffuse d;
-        Specular s;
-        Refraction r;
-    };
-
-    char p[sizeof(Storage)];
-
     Vec radiance(Visitor& v) const {
-        return reinterpret_cast<const Base*>(p)->accept(v);
+        return f(*this, v);
+    }
+
+    template <typename T, typename... Args>
+    static Material make(Args&&... args) {
+        Material m;
+        m.f = [] (const Material& self, Visitor& v) {
+            return v.visit(*reinterpret_cast<const T*>(&self.p));
+        };
+        new (&m.p) T {std::forward<Args>(args)...};
+        return m;
     }
 
     template <typename... Args>
     static Material diffuse(Args&&... args) {
-        Material m;
-        new (m.p) Diffuse(std::forward<Args>(args)...);
-        return m;
+        return make<Diffuse>(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     static Material specular(Args&&... args) {
-        Material m;
-        new (m.p) Specular(std::forward<Args>(args)...);
-        return m;
+        return make<Specular>(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     static Material refraction(Args&&... args) {
-        Material m;
-        new (m.p) Refraction(std::forward<Args>(args)...);
-        return m;
+        return make<Refraction>(std::forward<Args>(args)...);
     }
+
+private:
+    constexpr static int N = num::max_size<Diffuse, Specular, Refraction>();
+
+    Vec (*f)(const Material&, Visitor&);
+    char p[N];
 };
