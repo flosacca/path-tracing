@@ -8,6 +8,7 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <new>
 #include <random>
 #include <string>
 #include <type_traits>

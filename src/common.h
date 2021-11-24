@@ -35,43 +35,43 @@ namespace num {
     namespace eps {
         constexpr double EPS = 1e-4;
 
-        inline bool less(double x, double y) {
+        constexpr bool less(double x, double y) {
             return x < y - EPS;
         }
 
-        inline bool lessEqual(double x, double y) {
+        constexpr bool lessEqual(double x, double y) {
             return x < y + EPS;
         }
 
-        inline bool greater(double x, double y) {
+        constexpr bool greater(double x, double y) {
             return less(y, x);
         }
 
-        inline bool greaterEqual(double x, double y) {
+        constexpr bool greaterEqual(double x, double y) {
             return lessEqual(y, x);
         }
 
-        inline bool inclusive(double x, double a, double b) {
+        constexpr bool inclusive(double x, double a, double b) {
             return a - EPS < x && x < b + EPS;
         }
 
-        inline bool exclusive(double x, double a, double b) {
+        constexpr bool exclusive(double x, double a, double b) {
             return a + EPS < x & x < b - EPS;
         }
 
-        inline bool equal(double x, double y) {
+        constexpr bool equal(double x, double y) {
             return inclusive(x, y, y);
         }
 
-        inline bool zero(double x) {
+        constexpr bool zero(double x) {
             return inclusive(x, 0, 0);
         }
 
-        inline bool nonzero(double x) {
+        constexpr bool nonzero(double x) {
             return !inclusive(x, 0, 0);
         }
 
-        inline int sign(double x) {
+        constexpr int sign(double x) {
             return x < -EPS ? -1 : x > EPS;
         }
     }
@@ -117,7 +117,7 @@ namespace num {
     struct pow_t;
 
     template <unsigned N, typename T>
-    inline constexpr T pow(const T& x) {
+    constexpr T pow(const T& x) {
         return pow_t<N, T>::call(x);
     }
 
@@ -143,31 +143,70 @@ namespace num {
     };
 
     template <typename T>
-    constexpr inline const T& min(const T& a, const T& b) {
+    constexpr const T& min(const T& a, const T& b) {
         return std::min(a, b);
     }
 
     template <typename T, typename... Args>
-    constexpr inline const T& min(const T& a, const T& b, const Args&... args) {
+    constexpr const T& min(const T& a, const T& b, const Args&... args) {
         return num::min(num::min(a, b), args...);
     }
 
     template <typename T>
-    constexpr inline const T& max(const T& a, const T& b) {
+    constexpr const T& max(const T& a, const T& b) {
         return std::max(a, b);
     }
 
     template <typename T, typename... Args>
-    constexpr inline const T& max(const T& a, const T& b, const Args&... args) {
+    constexpr const T& max(const T& a, const T& b, const Args&... args) {
         return num::max(num::max(a, b), args...);
     }
 
+    using namespace eps;
+}
+
+namespace mp {
+    template <typename T>
+    struct identity {
+        using type = T;
+    };
+
     template <typename... Ts>
-    constexpr inline std::size_t max_size() {
+    constexpr size_t max_size() {
         return num::max(sizeof(Ts)...);
     }
 
-    using namespace eps;
+    template <typename S>
+    constexpr size_t index() {
+        return -1;
+    }
+
+    template <typename S, typename T, typename... Ts>
+    constexpr size_t index() {
+        if (std::is_same<S, T>::value) {
+            return 0;
+        }
+        constexpr size_t i = mp::index<S, Ts...>();
+        return i == -1 ? -1 : i + 1;
+    }
+
+    template <typename S, typename F>
+    inline auto select(size_t i, F&& f) {
+        if (i == 0) {
+            return f(mp::identity<S>());
+        } else {
+            throw std::runtime_error("no type of given index");
+        }
+    }
+
+    template <typename S, typename T, typename... Ts, typename F>
+    inline auto select(size_t i, F&& f) {
+        if (i == 0) {
+            return f(mp::identity<S>());
+        } else {
+            return mp::select<T, Ts...>(i - 1, std::forward<F>(f));
+        }
+    }
 }
 
 struct Ray {

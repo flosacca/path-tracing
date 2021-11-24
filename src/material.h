@@ -1,9 +1,7 @@
 #pragma once
-#include <new>
-#include "common.h"
+#include "enum.h"
 
-class Material {
-public:
+struct Material {
     struct Diffuse {};
 
     struct Specular {};
@@ -12,26 +10,9 @@ public:
         double n = 1.5;
     };
 
-    struct Visitor {
-        virtual Vec visit(const Diffuse&) = 0;
-
-        virtual Vec visit(const Specular&) = 0;
-
-        virtual Vec visit(const Refraction&) = 0;
-    };
-
-    Vec radiance(Visitor& v) const {
-        return f(*this, v);
-    }
-
     template <typename T, typename... Args>
     static Material make(Args&&... args) {
-        Material m;
-        m.f = [] (const Material& self, Visitor& v) {
-            return v.visit(*reinterpret_cast<const T*>(&self.p));
-        };
-        new (&m.p) T {std::forward<Args>(args)...};
-        return m;
+        return {Poly::of<T>(std::forward<Args>(args)...)};
     }
 
     template <typename... Args>
@@ -49,9 +30,14 @@ public:
         return make<Refraction>(std::forward<Args>(args)...);
     }
 
-private:
-    constexpr static int N = num::max_size<Diffuse, Specular, Refraction>();
+    template <typename Visitor>
+    Vec radiance(Visitor& v) const {
+        return p.then([&] (const auto& m) {
+            return v.visit(m);
+        });
+    }
 
-    Vec (*f)(const Material&, Visitor&);
-    char p[N];
+    using Poly = TypeEnum<Diffuse, Specular, Refraction>;
+
+    Poly p;
 };

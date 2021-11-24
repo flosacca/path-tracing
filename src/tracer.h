@@ -8,15 +8,12 @@ private:
     Sampler& a;
     int d = 0;
 
-    struct Visitor : Material::Visitor {
+    struct Visitor {
         RayTracer& self;
         Ray r;
         Vec n;
 
-        Visitor(RayTracer& self, const Ray& r, const Vec& n) :
-            self(self), r(r), n(n) {}
-
-        Vec visit(const Material::Diffuse& m) final {
+        Vec visit(const Material::Diffuse& m) {
             double l = glm::dot(r.d, n);
             double phi = self.a.uniform(2 * PI);
             double rho = glm::sqrt(self.a.uniform());
@@ -24,13 +21,13 @@ private:
             return self.radiance(Ray(r.o, d));
         }
 
-        Vec visit(const Material::Specular& m) final {
+        Vec visit(const Material::Specular& m) {
             double l = glm::dot(r.d, n);
             Vec d = r.d - 2.0 * l * n;
             return self.radiance(Ray(r.o, d));
         }
 
-        Vec visit(const Material::Refraction& m) final {
+        Vec visit(const Material::Refraction& m) {
             double l = glm::dot(r.d, n);
             constexpr double n0 = 1;
             double eta = std::signbit(l) ? n0 / m.n : m.n / n0;
@@ -79,7 +76,7 @@ public:
                 return s.e;
             }
         }
-        Visitor v(*this, Ray(r(s.t), r.d), s.n);
+        Visitor v {*this, Ray(r(s.t), r.d), s.n};
         return s.e + s.c / p * s.m.radiance(v);
     }
 };
