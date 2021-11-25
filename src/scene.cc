@@ -1,4 +1,5 @@
-#include <happly.h>
+#include "ext/ply.h"
+#include "helper.h"
 #include "scene.h"
 
 Scene Scene::load(const Yaml& models) {
@@ -26,18 +27,17 @@ Scene Scene::load(const Yaml& models) {
             scene.add<Sphere>(radius, center, color, material, emission);
 
         } else if (type == "mesh") {
-            happly::PLYData ply(q("model"));
-            auto&& vertex_el = ply.getElement("vertex");
-            auto&& prop_x = vertex_el.getProperty<double>("x");
-            auto&& prop_y = vertex_el.getProperty<double>("y");
-            auto&& prop_z = vertex_el.getProperty<double>("z");
+            Ply ply(q("model"));
+            auto prop_x = ply.getVertexProperty("x");
+            auto prop_y = ply.getVertexProperty("y");
+            auto prop_z = ply.getVertexProperty("z");
 
             std::vector<Vec> vertices;
             std::vector<Mesh::Index> indices;
             for (size_t i = 0; i != prop_x.size(); ++i) {
                 vertices.push_back({prop_x[i], prop_y[i], prop_z[i]});
             }
-            for (auto&& e : ply.getFaceIndices<int>()) {
+            for (auto&& e : ply.getFaceIndices()) {
                 indices.push_back({ e[0], e[1], e[2] });
             }
 
@@ -57,8 +57,8 @@ Scene Scene::load(const Yaml& models) {
 
             auto im_path = q("texture");
             if (im_path.size()) {
-                auto&& prop_u = vertex_el.getProperty<double>("u");
-                auto&& prop_v = vertex_el.getProperty<double>("v");
+                auto prop_u = ply.getVertexProperty("u");
+                auto prop_v = ply.getVertexProperty("v");
                 std::vector<glm::dvec2> uvs;
                 for (size_t i = 0; i != prop_x.size(); ++i) {
                     uvs.push_back({prop_u[i], prop_v[i]});

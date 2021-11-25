@@ -1,5 +1,4 @@
 #include <omp.h>
-#include "mesh.h"
 #include "camera.h"
 
 int main(int argc, char** argv) {

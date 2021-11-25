@@ -1,4 +1,5 @@
 #pragma once
+#include "helper.h"
 #include "tracer.h"
 
 class Camera {
