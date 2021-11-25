@@ -1,5 +1,5 @@
 #pragma once
-#include "helper.h"
+#include "env.h"
 #include "tracer.h"
 
 class Camera {
@@ -59,11 +59,11 @@ public:
         }
     }
 
-    static Camera load(const Yaml& t, double aspect) {
-        auto v = hlp::accessor(Vec(0))(t);
+    static Camera load(const Env& t, double aspect) {
+        auto v = env::accessor(Vec(0))(t);
         Vec o = v("origin");
         Vec d = v("direction");
-        double fov = glm::radians(hlp::fetch(t["fov"], 45.0));
+        double fov = glm::radians(env::fetch(t["fov"], 45.0));
         return Camera(o, d, aspect, fov);
     }
 };

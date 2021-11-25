@@ -6,7 +6,7 @@ int main(int argc, char** argv) {
     int h = w / 4 * 3;
     int spp = 1000;
     auto conf = YAML::LoadFile(argc > 1 ? argv[1] : "config.yml");
-    if (int n = hlp::fetch(conf["threads"], 0)) {
+    if (int n = env::fetch(conf["threads"], 0)) {
         omp_set_num_threads(n);
     }
     std::string p = "output.png";
@@ -15,8 +15,8 @@ int main(int argc, char** argv) {
             w = size[0].as<int>();
             h = size[1].as<int>();
         }
-        spp = hlp::fetch(meta["spp"], spp);
-        p = hlp::fetch(meta["output"], p);
+        spp = env::fetch(meta["spp"], spp);
+        p = env::fetch(meta["output"], p);
     }
     Scene scene = Scene::load(conf["scene"]);
     Camera cam = Camera::load(conf["camera"], (double) w / h);

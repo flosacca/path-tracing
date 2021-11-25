@@ -1,20 +1,20 @@
 #include "ext/ply.h"
-#include "helper.h"
+#include "env.h"
 #include "scene.h"
 
-Scene Scene::load(const Yaml& models) {
+Scene Scene::load(const Env& models) {
     Scene scene;
-    auto v0 = hlp::accessor(Vec(0));
-    auto s0 = hlp::accessor(0.0);
+    auto v0 = env::accessor(Vec(0));
+    auto s0 = env::accessor(0.0);
 
-    for (const Yaml& t : models) {
+    for (const Env& t : models) {
         auto v = v0(t);
-        auto q = hlp::accessor<std::string>()(t);
+        auto q = env::accessor<std::string>()(t);
         auto type = q("type");
 
         Vec color = v("color");
         Vec emission = v("emission");
-        Material material = hlp::fetch(t["material"], Material::diffuse());
+        Material material = env::fetch(t["material"], Material::diffuse());
 
         if (type == "plane") {
             Vec normal = v("normal");
@@ -41,7 +41,7 @@ Scene Scene::load(const Yaml& models) {
                 indices.push_back({ e[0], e[1], e[2] });
             }
 
-            Vec s = hlp::fetch(t["scale"], Vec(1));
+            Vec s = env::fetch(t["scale"], Vec(1));
             Vec w = v("translate");
             if (auto r = t["rotate"]) {
                 glm::dmat3 f = glm::rotate(glm::radians(s0(r)(0)), v0(r)(1));

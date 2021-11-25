@@ -20,5 +20,5 @@ struct Scene {
         models.push_back(std::make_shared<T>(std::forward<Args>(args)...));
     }
 
-    static Scene load(const Yaml& models);
+    static Scene load(const Env& models);
 };

@@ -1,18 +1,20 @@
 #pragma once
 #include "material.h"
 
-namespace hlp {
+using Env = YAML::Node;
+
+namespace env {
     template <typename T>
-    struct YamlFetcher;
+    struct fetch_t;
 
     template <typename T>
-    inline T fetch(const Yaml& v, const T& d) {
-        return YamlFetcher<T>::call(v, d);
+    inline T fetch(const Env& v, const T& d) {
+        return fetch_t<T>::call(v, d);
     }
 
     template <typename T>
     inline auto accessor(const T& d = T()) {
-        return [=] (const Yaml& v) {
+        return [=] (const Env& v) {
             return [=] (const auto& i) {
                 return fetch(v[i], d);
             };
@@ -20,15 +22,15 @@ namespace hlp {
     }
 
     template <typename T>
-    struct YamlFetcher {
-        static T call(const Yaml& v, const T& d) {
+    struct fetch_t {
+        static T call(const Env& v, const T& d) {
             return v.as<T>(d);
         }
     };
 
     template <>
-    struct YamlFetcher<Vec> {
-        static Vec call(const Yaml& v, const Vec& d) {
+    struct fetch_t<Vec> {
+        static Vec call(const Env& v, const Vec& d) {
             if (!v) {
                 return d;
             }
@@ -44,8 +46,8 @@ namespace hlp {
     };
 
     template <>
-    struct YamlFetcher<Material> {
-        static Material call(const Yaml& v, const Material& d) {
+    struct fetch_t<Material> {
+        static Material call(const Env& v, const Material& d) {
             if (!v) {
                 return d;
             }
