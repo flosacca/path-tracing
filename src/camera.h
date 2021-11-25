@@ -23,36 +23,45 @@ public:
 
     template <typename Device>
     void render(const Scene& scene, Device& device, int spp) {
+        // static FILE* log_file = fopen("camera.log", "w");
         int n = spp / 4;
         int w = device.width();
         int h = device.height();
         fprintf(stderr, "Start rendering with width = %d, height = %d, spp = %d\n", w, h, spp);
-        int s = 0;
+        constexpr int m = 4;
+        int p = 0;
         #pragma omp parallel for schedule(dynamic, 1)
         for (int y = 0; y < h; y++) {
             Sampler samp((uint32_t) y * y);
             RayTracer tracer(scene, samp);
             for (int x = 0; x < w; x++) {
                 Vec c(0);
-                for (int j = 0; j < 2; ++j) {
-                    for (int i = 0; i < 2; ++i) {
-                        Vec r(0);
-                        for (int k = 0; k < n; ++k) {
+                for (int k = 0; k < 4; ++k) {
+                    int i = 0;
+                    for (int j = 1; j <= m; ++j) {
+                        Vec s(0);
+                        double i0 = i;
+                        // (i / n) < (j / m)
+                        for (; i * m < j * n; ++i) {
                             double dx = samp.triangle();
                             double dy = samp.triangle();
-                            double nx = (x * 2 + dx + i + 0.5) / w - 1;
-                            double ny = (y * 2 + dy + j + 0.5) / h - 1;
+                            double nx = (x * 2 + dx + k % 2 + 0.5) / w - 1;
+                            double ny = (y * 2 + dy + k / 2 + 0.5) / h - 1;
                             Ray ray(origin, glm::normalize(nx * right + ny * up + dir));
-                            r += tracer.radiance(ray);
+                            // Vec rad = tracer.radiance(ray);
+                            // if (glm::compMin(rad) > 1) {
+                            //     fprintf(log_file, "%d %d %d %d %d %f %f %f\n", x, h - y - 1, i, j, k, rad.x, rad.y, rad.z);
+                            // }
+                            s += tracer.radiance(ray);
                         }
-                        c += glm::clamp(r / (double) n, 0.0, 1.0);
+                        c += glm::clamp(s / (i - i0), 0.0, 1.0);
                     }
                 }
-                device.set(x, h - y - 1, c / 4.0);
+                device.set(x, h - y - 1, c / (m * 4.0));
                 #pragma omp atomic
-                ++s;
-                fprintf(stderr, "\rRendered: %5.2f%%", 100.0 * s / (w * h));
-                if (s == w * h) {
+                ++p;
+                fprintf(stderr, "\rRendered: %5.2f%%", 100.0 * p / (w * h));
+                if (p == w * h) {
                     fputs("\n", stderr);
                 }
             }

@@ -19,7 +19,7 @@ namespace fun {
     }
 
     template <typename T, typename F>
-    inline std::unique_ptr<T, void (*)(T*)> make_unique(T* p, F f) {
+    inline std::unique_ptr<T, void (*)(T*)> resource(T* p, F f) {
         return {p, f};
     }
 }

@@ -7,6 +7,7 @@ private:
     const Scene& scene;
     Sampler& a;
     int d = 0;
+    double q = 1;
 
     struct Visitor {
         RayTracer& self;
@@ -40,7 +41,7 @@ private:
             Vec t = eta * r.d - (eta * l + std::copysign(k, -l)) * n;
             double R0 = num::pow<2>((m.n - n0) / (m.n + n0));
             double R = R0 + (1 - R0) * num::pow<5>(1 - std::min(k, glm::abs(l)));
-            if (self.d <= 2) {
+            if (self.d < 2) {
                 return R * self.radiance(Ray(r.o, d)) + (1 - R) * self.radiance(Ray(r.o, t));
             }
             double p = 0.25 + 0.5 * R;
@@ -53,8 +54,8 @@ private:
     };
 
 public:
-    RayTracer(const Scene& scene, Sampler& a) :
-        scene(scene), a(a) {}
+	RayTracer(const Scene& s, Sampler& a) :
+        scene(s), a(a) {}
 
     Vec radiance(const Ray& r) {
         Model::Detail s;
@@ -62,21 +63,27 @@ public:
         if (s.t == INF) {
             return Vec(0);
         }
-        auto g = fun::make_unique(this, [] (RayTracer* p) {
-            --p->d;
-        });
-        ++d;
-        double p = 1;
+        Vec e = q * s.e;
+        if (q > 5) {
+            return e;
+        }
         if (d >= 5) {
-            p = glm::compMax(s.c);
-            if (d >= 20) {
-                p = std::min(p, 0.9);
-            }
+            // double p = glm::compMax(s.c);
+            // if (d >= 20) {
+            //     p = std::min(p, 0.9);
+            // }
+            double p = glm::clamp(glm::compMax(s.c), 0.75, 0.95);
             if (a.uniform() > p) {
-                return s.e;
+                return e;
             }
+            q /= p;
         }
         Visitor v {*this, Ray(r(s.t), r.d), s.n};
-        return s.e + s.c / p * s.m.radiance(v);
+        double q0 = q;
+        ++d;
+        e += s.c * s.m.radiance(v);
+        --d;
+        q = q0;
+        return e;
     }
 };
