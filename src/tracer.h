@@ -64,15 +64,19 @@ public:
             return Vec(0);
         }
         Vec e = q * s.e;
-        if (q > 5) {
+        if (opts.q && q > opts.q) {
             return e;
         }
         if (d >= 5) {
-            // double p = glm::compMax(s.c);
-            // if (d >= 20) {
-            //     p = std::min(p, 0.9);
-            // }
-            double p = glm::clamp(glm::compMax(s.c), 0.75, 0.95);
+            double p;
+            if (opts.t == 0) {
+                p = glm::compMax(s.c);
+                if (d >= 20) {
+                    p = std::min(p, 0.9);
+                }
+            } else {
+                p = glm::clamp(glm::compMax(s.c), 0.75, 0.95);
+            }
             if (a.uniform() > p) {
                 return e;
             }
@@ -86,4 +90,12 @@ public:
         q = q0;
         return e;
     }
+
+    struct Options {
+        int t;
+        double q;
+        int m;
+    };
+
+    inline static Options opts;
 };

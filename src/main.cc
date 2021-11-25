@@ -9,6 +9,11 @@ int main(int argc, char** argv) {
     if (int n = env::fetch(conf["threads"], 0)) {
         omp_set_num_threads(n);
     }
+    auto bm = conf["bm"];
+    auto& opts = RayTracer::opts;
+    opts.t = bm[0].as<int>();
+    opts.q = bm[1].as<double>();
+    opts.m = bm[2].as<int>();
     std::string p = "output.png";
     if (auto meta = conf["image"]) {
         if (auto size = meta["size"]) {

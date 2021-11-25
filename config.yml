@@ -1,7 +1,9 @@
+bm: [0, 0, 1]
 threads: 4
 image:
   size: [240, 135]
   spp: 100
+  output: output.png
 camera:
   {origin: [40, 55, 400], direction: [0, -0.03, -1], fov: 25}
 scene:

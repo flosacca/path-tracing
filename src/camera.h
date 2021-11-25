@@ -28,7 +28,7 @@ public:
         int w = device.width();
         int h = device.height();
         fprintf(stderr, "Start rendering with width = %d, height = %d, spp = %d\n", w, h, spp);
-        constexpr int m = 4;
+        int m = RayTracer::opts.m;
         int p = 0;
         #pragma omp parallel for schedule(dynamic, 1)
         for (int y = 0; y < h; y++) {
