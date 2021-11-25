@@ -8,37 +8,43 @@ namespace env {
     struct fetch_t;
 
     template <typename T>
-    inline T fetch(const Env& v, const T& d) {
-        return fetch_t<T>::call(v, d);
+    inline T fetch(const Env& e, const T& d) {
+        return fetch_t<T>::call(e, d);
+    }
+
+    inline auto bind(const Env& e) {
+        return [=] (const auto& i, const auto& d) {
+            return fetch(e[i], d);
+        };
     }
 
     template <typename T>
     inline auto accessor(const T& d = T()) {
-        return [=] (const Env& v) {
+        return [=] (const Env& e) {
             return [=] (const auto& i) {
-                return fetch(v[i], d);
+                return fetch(e[i], d);
             };
         };
     }
 
     template <typename T>
     struct fetch_t {
-        static T call(const Env& v, const T& d) {
-            return v.as<T>(d);
+        static T call(const Env& e, const T& d) {
+            return e.as<T>(d);
         }
     };
 
     template <>
     struct fetch_t<Vec> {
-        static Vec call(const Env& v, const Vec& d) {
-            if (!v) {
+        static Vec call(const Env& e, const Vec& d) {
+            if (!e) {
                 return d;
             }
-            if (v.IsScalar()) {
-                return Vec(fetch(v, 0.0));
+            if (e.IsScalar()) {
+                return Vec(fetch(e, 0.0));
             }
-            if (v.IsSequence()) {
-                auto s = accessor(0.0)(v);
+            if (e.IsSequence()) {
+                auto s = accessor(0.0)(e);
                 return Vec(s(0), s(1), s(2));
             }
             return d;
@@ -47,15 +53,15 @@ namespace env {
 
     template <>
     struct fetch_t<Material> {
-        static Material call(const Env& v, const Material& d) {
-            if (!v) {
+        static Material call(const Env& e, const Material& d) {
+            if (!e) {
                 return d;
             }
-            int k = v.IsScalar() | v.IsSequence() << 1;
+            int k = e.IsScalar() | e.IsSequence() << 1;
             if (!k) {
                 return d;
             }
-            auto t = fetch(k & 1 ? v : v[0], std::string());
+            auto t = fetch(k & 1 ? e : e[0], std::string());
             if (t == "diffuse") {
                 return Material::diffuse();
             }
@@ -64,7 +70,7 @@ namespace env {
             }
             if (t == "refractive") {
                 constexpr double n = 1.5;
-                return Material::refractive(k & 1 ? n : fetch(v[1], n));
+                return Material::refractive(k & 1 ? n : fetch(e[1], n));
             }
             return d;
         }

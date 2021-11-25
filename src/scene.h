@@ -1,5 +1,6 @@
 #pragma once
 #include "mesh.h"
+#include "env.h"
 
 struct Scene {
     std::vector<std::shared_ptr<Model>> models;

@@ -1,12 +1,15 @@
 #pragma once
 #include "scene.h"
 #include "sampler.h"
+#include "option.h"
 
 class RayTracer {
 private:
     const Scene& scene;
     Sampler& a;
+    Option opt;
     int d = 0;
+    double q = 1;
 
     struct Visitor {
         RayTracer& self;
@@ -53,8 +56,8 @@ private:
     };
 
 public:
-    RayTracer(const Scene& scene, Sampler& a) :
-        scene(scene), a(a) {}
+    RayTracer(const Scene& s, Sampler& a, const Option& opt) :
+        scene(s), a(a), opt(opt) {}
 
     Vec radiance(const Ray& r) {
         Model::Detail s;
@@ -62,21 +65,23 @@ public:
         if (s.t == INF) {
             return Vec(0);
         }
-        auto g = fun::make_unique(this, [] (RayTracer* p) {
-            --p->d;
-        });
-        ++d;
-        double p = 1;
-        if (d >= 5) {
-            p = glm::compMax(s.c);
-            if (d >= 20) {
-                p = std::min(p, 0.9);
+        Vec e = q * s.e;
+        if (d >= opt.bounce) {
+            if (!opt.rr) {
+                return e;
             }
+            double p = d >= opt.rr_bounce ? opt.rr : glm::compMax(s.c);
             if (a.uniform() > p) {
-                return s.e;
+                return e;
             }
+            q /= p;
         }
         Visitor v {*this, Ray(r(s.t), r.d), s.n};
-        return s.e + s.c / p * s.m.radiance(v);
+        double q0 = q;
+        ++d;
+        e += s.c * s.m.radiance(v);
+        --d;
+        q = q0;
+        return e;
     }
 };

@@ -17,11 +17,6 @@ namespace fun {
     inline Recursive::Y<std::decay_t<F>> recursive(F&& f) {
         return {f};
     }
-
-    template <typename T, typename F>
-    inline std::unique_ptr<T, void (*)(T*)> make_unique(T* p, F f) {
-        return {p, f};
-    }
 }
 
 using Vec = glm::dvec3;

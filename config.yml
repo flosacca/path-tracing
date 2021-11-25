@@ -1,7 +1,13 @@
 threads: 4
-image:
+rendering:
+  output: output.png
   size: [240, 135]
   spp: 100
+  ssaa: 2
+  bagging: 1
+  bounce: 4
+  rr: 0.9
+  rr_bounce: 20
 camera:
   {origin: [40, 55, 400], direction: [0, -0.03, -1], fov: 25}
 scene:
