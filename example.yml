@@ -47,9 +47,9 @@ camera:
 # color: object color, ignored if texture is supplied
 # emission: light color for lighting objects, default to `0`
 #
-# The material is one of diffuse, specular and refraction.
+# The material is one of diffuse, specular and refractive.
 # The value is corresponding string.
-# For refraction type, you can specify an additional refractive index `n` as `[refraction, n]`.
+# For refractive type, you can specify an additional refractive index `n` as `[refractive, n]`.
 # material: object material, default to `diffuse`
 #
 # The transform is applied in the order of `scale` -> `rotate` -> `translate`.
@@ -66,5 +66,5 @@ scene:
   - {type: plane, normal: [0, +1, 0], point: [0, 0, 0], color: 0.75}
   - {type: plane, normal: [0, -1, 0], point: [0, 100, 0], color: 0.75}
   - {type: sphere, radius: 16, center: [-25, 16, 25], color: 1, material: specular}
-  - {type: sphere, radius: 12, center: [+25, 12, 50], color: 1, material: refraction}
-  - {type: mesh, model: models/stanford/bun_zipper.ply, scale: 150, translate: [27, 19.0519, 48], color: 1, material: refraction, emission: [0.208, 0.172, 0.054]}
+  - {type: sphere, radius: 12, center: [+25, 12, 50], color: 1, material: refractive}
+  - {type: mesh, model: models/stanford/bun_zipper.ply, scale: 150, translate: [27, 19.0519, 48], color: 1, material: refractive, emission: [0.208, 0.172, 0.054]}

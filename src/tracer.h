@@ -27,7 +27,7 @@ private:
             return self.radiance(Ray(r.o, d));
         }
 
-        Vec visit(const Material::Refraction& m) {
+        Vec visit(const Material::Refractive& m) {
             double l = glm::dot(r.d, n);
             constexpr double n0 = 1;
             double eta = std::signbit(l) ? n0 / m.n : m.n / n0;

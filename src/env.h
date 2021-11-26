@@ -62,9 +62,9 @@ namespace env {
             if (t == "specular") {
                 return Material::specular();
             }
-            if (t == "refraction") {
+            if (t == "refractive") {
                 constexpr double n = 1.5;
-                return Material::refraction(k & 1 ? n : fetch(v[1], n));
+                return Material::refractive(k & 1 ? n : fetch(v[1], n));
             }
             return d;
         }

@@ -6,7 +6,7 @@ struct Material {
 
     struct Specular {};
 
-    struct Refraction {
+    struct Refractive {
         double n = 1.5;
     };
 
@@ -26,8 +26,8 @@ struct Material {
     }
 
     template <typename... Args>
-    static Material refraction(Args&&... args) {
-        return make<Refraction>(std::forward<Args>(args)...);
+    static Material refractive(Args&&... args) {
+        return make<Refractive>(std::forward<Args>(args)...);
     }
 
     template <typename Visitor>
@@ -37,7 +37,7 @@ struct Material {
         });
     }
 
-    using Poly = TypeEnum<Diffuse, Specular, Refraction>;
+    using Poly = TypeEnum<Diffuse, Specular, Refractive>;
 
     Poly p;
 };
