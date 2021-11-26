@@ -1,5 +1,6 @@
 #pragma once
 #include "model.h"
+#include "trimat.h"
 #include "bvh.h"
 #include "image.h"
 
@@ -42,6 +43,7 @@ private:
         std::array<Vec, 3> p;
         std::array<Vec, 3> n;
         std::array<glm::dvec2, 3> q;
+        TriMat m;
 
         struct Face {
             double t = INF;
@@ -60,25 +62,9 @@ private:
         }
 
         void intersect(const Ray& r, Face& f) const {
-            Vec v1 = glm::cross(r.d, p[2]);
-            double d = glm::dot(v1, p[1]);
-            if (cmp::zero(d)) {
-                return;
-            }
-            double c = 1 / d;
-            Vec u = r.o - p[0];
-            double b1 = c * glm::dot(v1, u);
-            if (!cmp::inclusive(b1, 0, 1)) {
-                return;
-            }
-            Vec v2 = glm::cross(u, p[1]);
-            double b2 = c * glm::dot(v2, r.d);
-            if (!cmp::inclusive(b2, 0, 1 - b1)) {
-                return;
-            }
-            double t = c * glm::dot(v2, p[2]);
-            if (cmp::greater(t, 0) && t < f.t) {
-                f = {t, b1, b2, this};
+            Vec s;
+            if (m.solve(r.o, r.d, s) && s.x < f.t) {
+                f = {s.x, s.y, s.z, this};
             }
         }
     };
@@ -121,7 +107,9 @@ private:
             auto&& e = indices[i];
             auto n = f(normals, e);
             auto q = meta::when(im, [&] { return f(uvs, e); });
-            triangles.push_back({t[i].p, n, q});
+            auto& p = t[i].p;
+            TriMat m(p[0], p[1], p[2]);
+            triangles.push_back({t[i].p, n, q, m});
         }
         bvh.build(triangles);
     }
