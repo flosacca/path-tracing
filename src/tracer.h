@@ -1,11 +1,13 @@
 #pragma once
 #include "scene.h"
 #include "sampler.h"
+#include "option.h"
 
 class RayTracer {
 private:
     const Scene& scene;
     Sampler& a;
+    Option opt;
     int d = 0;
     double q = 1;
 
@@ -41,7 +43,7 @@ private:
             Vec t = eta * r.d - (eta * l + std::copysign(k, -l)) * n;
             double R0 = num::pow<2>((m.n - n0) / (m.n + n0));
             double R = R0 + (1 - R0) * num::pow<5>(1 - std::min(k, glm::abs(l)));
-            if (self.d < 2) {
+            if (self.d <= 2) {
                 return R * self.radiance(Ray(r.o, d)) + (1 - R) * self.radiance(Ray(r.o, t));
             }
             double p = 0.25 + 0.5 * R;
@@ -54,8 +56,8 @@ private:
     };
 
 public:
-	RayTracer(const Scene& s, Sampler& a) :
-        scene(s), a(a) {}
+    RayTracer(const Scene& s, Sampler& a, const Option& opt) :
+        scene(s), a(a), opt(opt) {}
 
     Vec radiance(const Ray& r) {
         Model::Detail s;
@@ -64,23 +66,11 @@ public:
             return Vec(0);
         }
         Vec e = q * s.e;
-        if (opts.q && q > opts.q) {
-            return e;
-        }
-        if (opts.d) {
-            if (d == opts.d - 1) {
+        if (d >= opt.bounce) {
+            if (!opt.rr) {
                 return e;
             }
-        } else if (d >= 5) {
-            double p;
-            if (opts.t == 0) {
-                p = glm::compMax(s.c);
-                if (d >= 20) {
-                    p = std::min(p, 0.9);
-                }
-            } else {
-                p = glm::clamp(glm::compMax(s.c), 0.75, 0.95);
-            }
+            double p = d >= opt.rr_bounce ? opt.rr : glm::compMax(s.c);
             if (a.uniform() > p) {
                 return e;
             }
@@ -94,13 +84,4 @@ public:
         q = q0;
         return e;
     }
-
-    struct Options {
-        int t;
-        double q;
-        int m;
-        int d;
-    };
-
-    inline static Options opts;
 };

@@ -1,5 +1,4 @@
 #include "ext/ply.h"
-#include "env.h"
 #include "scene.h"
 
 Scene Scene::load(const Env& models) {
