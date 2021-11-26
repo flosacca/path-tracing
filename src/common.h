@@ -17,6 +17,11 @@ namespace fun {
     inline Recursive::Y<std::decay_t<F>> recursive(F&& f) {
         return {f};
     }
+
+    template <typename F>
+    inline auto eval_if(bool c, F&& f) {
+        return c ? f() : std::decay_t<decltype(f())> {};
+    }
 }
 
 using Vec = glm::dvec3;

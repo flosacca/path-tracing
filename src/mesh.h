@@ -23,17 +23,43 @@ public:
         : Mesh(vertices, indices, texture, uvs, {}, material, emission) {}
 
     void find(const Ray& r, Detail& s) const final {
-        bvh.intersect(r, s);
+        Triangle::Face f;
+        bvh.intersect(r, f);
+        if (f.t < s.t) {
+            Vec n = glm::normalize(f(f.s->n));
+            if (has_texture) {
+                glm::dvec2 p = f(f.s->q);
+                Vec c = im.sample(p.x, p.y);
+                s = {f.t, n, c, a.e, a.m};
+            } else {
+                s = {f.t, n, a.c, a.e, a.m};
+            }
+        }
     }
 
 private:
     struct Triangle {
-        Mesh& self;
         std::array<Vec, 3> p;
-        Vec n;
+        std::array<Vec, 3> n;
         std::array<glm::dvec2, 3> q;
 
-        void intersect(const Ray& r, Detail& s) const {
+        struct Face {
+            double t = INF;
+            double b1 = 0;
+            double b2 = 0;
+            const Triangle* s = nullptr;
+
+            template <typename T>
+            T operator()(const std::array<T, 3>& e) {
+                return e[0] + b1 * e[1] + b2 * e[2];
+            }
+        };
+
+        Box box() const {
+            return Box::of(p[0], p[0] + p[1], p[0] + p[2]);
+        }
+
+        void intersect(const Ray& r, Face& f) const {
             Vec v1 = glm::cross(r.d, p[2]);
             double d = glm::dot(v1, p[1]);
             if (num::zero(d)) {
@@ -41,33 +67,19 @@ private:
             }
             double c = 1 / d;
             Vec u = r.o - p[0];
-            double l1 = c * glm::dot(v1, u);
-            if (!num::inclusive(l1, 0, 1)) {
+            double b1 = c * glm::dot(v1, u);
+            if (!num::inclusive(b1, 0, 1)) {
                 return;
             }
             Vec v2 = glm::cross(u, p[1]);
-            double l2 = c * glm::dot(v2, r.d);
-            if (!num::inclusive(l2, 0, 1 - l1)) {
+            double b2 = c * glm::dot(v2, r.d);
+            if (!num::inclusive(b2, 0, 1 - b1)) {
                 return;
             }
             double t = c * glm::dot(v2, p[2]);
-            if (num::greater(t, 0) && t < s.t) {
-                const Meta& m = self.meta;
-                Vec c = m.c;
-                if (self.has_texture) {
-                    glm::dvec2 p = q[0] + l1 * q[1] + l2 * q[2];
-                    c = self.im.sample(p.x, p.y);
-                }
-                s = {t, n, c, m.e, m.m};
+            if (num::greater(t, 0) && t < f.t) {
+                f = {t, b1, b2, this};
             }
-        }
-
-        Box box() const {
-            return Box::of(p[0], p[0] + p[1], p[0] + p[2]);
-        }
-
-        static double area(const Vec& a, const Vec& b, const Vec& c) {
-            return glm::length(glm::cross(a - c, b - c));
         }
     };
 
@@ -86,19 +98,33 @@ private:
         : Model(color, emission, material),
           im(texture),
           has_texture(uvs.size()) {
-        auto&& p = vertices;
-        auto&& q = uvs;
-        for (const auto& e : indices) {
-            int i = e[0];
-            int j = e[1];
-            int k = e[2];
-            std::array<Vec, 3> a = {p[i], p[j] - p[i], p[k] - p[i]};
-            Vec n = glm::normalize(glm::cross(a[1], a[2]));
-            std::array<glm::dvec2, 3> b;
-            if (has_texture) {
-                b = {q[i], q[j] - q[i], q[k] - q[i]};
+        auto f = [] (auto&& c, auto&& e) {
+            auto i = e[0], j = e[1], k = e[2];
+            using T = std::decay_t<decltype(c[i])>;
+            return std::array<T, 3> {c[i], c[j] - c[i], c[k] - c[i]};
+        };
+        struct Pair {
+            std::array<Vec, 3> p;
+            Vec n;
+        };
+        std::vector<Vec> normals(vertices.size());
+        std::vector<Pair> t;
+        for (auto&& e : indices) {
+            auto p = f(vertices, e);
+            Vec n = glm::cross(p[1], p[2]);
+            for (int j = 0; j < 3; ++j) {
+                normals[e[j]] += n;
             }
-            triangles.push_back({*this, a, n, b});
+            t.push_back({p, n});
+        }
+        for (size_t i = 0; i != indices.size(); ++i) {
+            if (num::zero(glm::length(t[i].n))) {
+                continue;
+            }
+            auto&& e = indices[i];
+            auto n = f(normals, e);
+            auto q = fun::eval_if(has_texture, [&] { return f(uvs, e); });
+            triangles.push_back({t[i].p, n, q});
         }
         bvh.build(triangles);
     }

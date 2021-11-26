@@ -16,17 +16,17 @@ public:
     virtual ~Model() = default;
 
 protected:
-    struct Meta {
+    struct Attr {
         Vec c;
         Vec e;
         Material m;
     };
 
-    Meta meta;
+    Attr a;
 
     template <typename... Args>
     Model(Args&&... args) :
-        meta {std::forward<Args>(args)...} {}
+        a {std::forward<Args>(args)...} {}
 };
 
 class Sphere : public Model {
@@ -51,7 +51,7 @@ public:
                 double t = num::greater(t2, 0) ? t2 : t1;
                 if (t < s.t) {
                     Vec n = glm::normalize(ray(t) - o);
-                    s = {t, n, meta.c, meta.e, meta.m};
+                    s = {t, n, a.c, a.e, a.m};
                 }
             }
         }
@@ -72,7 +72,7 @@ public:
         if (num::nonzero(d)) {
             double t = glm::dot(p - r.o, n) / d;
             if (num::greater(t, 0) && t < s.t) {
-                s = {t, n, meta.c, meta.e, meta.m};
+                s = {t, n, a.c, a.e, a.m};
             }
         }
     }
