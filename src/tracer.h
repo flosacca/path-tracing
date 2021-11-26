@@ -67,7 +67,11 @@ public:
         if (opts.q && q > opts.q) {
             return e;
         }
-        if (d >= 5) {
+        if (opts.d) {
+            if (d == opts.d - 1) {
+                return e;
+            }
+        } else if (d >= 5) {
             double p;
             if (opts.t == 0) {
                 p = glm::compMax(s.c);
@@ -95,6 +99,7 @@ public:
         int t;
         double q;
         int m;
+        int d;
     };
 
     inline static Options opts;

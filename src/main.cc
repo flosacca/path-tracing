@@ -14,6 +14,7 @@ int main(int argc, char** argv) {
     opts.t = bm[0].as<int>();
     opts.q = bm[1].as<double>();
     opts.m = bm[2].as<int>();
+    opts.d = bm[3].as<int>();
     std::string p = "output.png";
     if (auto meta = conf["image"]) {
         if (auto size = meta["size"]) {
