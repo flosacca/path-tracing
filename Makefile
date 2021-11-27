@@ -20,7 +20,7 @@ build/%.o: src/%.cc $(PCH) $(HEADERS)
 build/ext/%.o: src/ext/%.cc src/ext/%.h
 	$(CXX) -c -o $@ $(CXXFLAGS) $<
 
-$(PCH): src/all.h
+$(PCH): src/all.h Makefile
 	$(CXX) -c -o $@ $(CXXFLAGS) -x c++-header $<
 
 build/libyaml-cpp.a:
