@@ -62,22 +62,22 @@ private:
         void intersect(const Ray& r, Face& f) const {
             Vec v1 = glm::cross(r.d, p[2]);
             double d = glm::dot(v1, p[1]);
-            if (num::zero(d)) {
+            if (cmp::zero(d)) {
                 return;
             }
             double c = 1 / d;
             Vec u = r.o - p[0];
             double b1 = c * glm::dot(v1, u);
-            if (!num::inclusive(b1, 0, 1)) {
+            if (!cmp::inclusive(b1, 0, 1)) {
                 return;
             }
             Vec v2 = glm::cross(u, p[1]);
             double b2 = c * glm::dot(v2, r.d);
-            if (!num::inclusive(b2, 0, 1 - b1)) {
+            if (!cmp::inclusive(b2, 0, 1 - b1)) {
                 return;
             }
             double t = c * glm::dot(v2, p[2]);
-            if (num::greater(t, 0) && t < f.t) {
+            if (cmp::greater(t, 0) && t < f.t) {
                 f = {t, b1, b2, this};
             }
         }
@@ -115,7 +115,7 @@ private:
         }
         std::vector<Triangle> triangles;
         for (size_t i = 0; i != indices.size(); ++i) {
-            if (num::zero(glm::length(t[i].n))) {
+            if (cmp::zero(glm::length(t[i].n))) {
                 continue;
             }
             auto&& e = indices[i];

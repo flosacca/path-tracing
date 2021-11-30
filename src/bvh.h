@@ -12,7 +12,7 @@ struct Box {
     bool intersects(const Ray& r) const {
         glm::dvec2 t(-INF, +INF);
         for (int i = 0; i < 3; ++i) {
-            if (num::nonzero(r.d[i])) {
+            if (cmp::nonzero(r.d[i])) {
                 glm::dvec2 s(p1[i] - r.o[i], p2[i] - r.o[i]);
                 s /= r.d[i];
                 if (s.x < s.y) {
@@ -22,7 +22,7 @@ struct Box {
                 }
             }
         }
-        return num::lessEqual(t.x, t.y) && num::greater(t.y, 0);
+        return cmp::lessEqual(t.x, t.y) && cmp::greater(t.y, 0);
     }
 
     Vec shape() const {

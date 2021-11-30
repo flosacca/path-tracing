@@ -20,7 +20,7 @@ private:
             double l = glm::dot(r.d, n);
             double phi = self.a.uniform(2 * PI);
             double rho = glm::sqrt(self.a.uniform());
-            Vec d = num::unit::from_rho(phi, rho, std::copysign(1.0, -l) * n);
+            Vec d = UnitVec::from_rho(phi, rho, std::copysign(1.0, -l) * n);
             return self.radiance(Ray(r.o, d));
         }
 
@@ -36,7 +36,7 @@ private:
             double eta = std::signbit(l) ? n0 / m.n : m.n / n0;
             double k2 = 1 - eta * eta * (1 - l * l);
             Vec d = r.d - 2.0 * l * n;
-            if (num::lessEqual(k2, 0)) {
+            if (cmp::lessEqual(k2, 0)) {
                 return self.radiance(Ray(r.o, d));
             }
             double k = glm::sqrt(k2);

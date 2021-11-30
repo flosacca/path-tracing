@@ -43,12 +43,12 @@ public:
         Vec v = o - ray.o;
         double b = glm::dot(v, ray.d);
         double d2 = r * r - (glm::dot(v, v) - b * b);
-        if (num::greater(d2, 0)) {
+        if (cmp::greater(d2, 0)) {
             double d = glm::sqrt(d2);
             double t1 = b + d;
-            if (num::greater(t1, 0)) {
+            if (cmp::greater(t1, 0)) {
                 double t2 = b - d;
-                double t = num::greater(t2, 0) ? t2 : t1;
+                double t = cmp::greater(t2, 0) ? t2 : t1;
                 if (t < s.t) {
                     Vec n = glm::normalize(ray(t) - o);
                     s = {t, n, a.c, a.e, a.m};
@@ -69,9 +69,9 @@ public:
 
     void find(const Ray& r, Detail& s) const final {
         double d = glm::dot(r.d, n);
-        if (num::nonzero(d)) {
+        if (cmp::nonzero(d)) {
             double t = glm::dot(p - r.o, n) / d;
-            if (num::greater(t, 0) && t < s.t) {
+            if (cmp::greater(t, 0) && t < s.t) {
                 s = {t, n, a.c, a.e, a.m};
             }
         }
