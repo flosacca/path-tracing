@@ -1,4 +1,4 @@
-CXXFLAGS = -std=c++14 -O3 -mavx2 -fopenmp $(INCLUDES)
+CXXFLAGS = -std=c++14 -mavx2 -mfma -O2 -flto -fopenmp $(INCLUDES)
 
 INCLUDES := -Ilib -Ilib/yaml-cpp/include
 OBJS := build/main.o \
