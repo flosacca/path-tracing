@@ -15,8 +15,8 @@ scene:
   - {type: plane, normal: [-1, 0, 0], point: [+120, 0, 0], color: [0.25, 0.25, 0.75], material: specular}
   - {type: mesh, model: res/square.ply, scale: [120, 100, 0], translate: [-120, 0, 0], color: 0.75, material: specular}
   - {type: mesh, model: res/square.ply, scale: [120, 100, 0], translate: [0, 0, 0], color: 0.75}
-  - {type: mesh, model: res/square.ply, scale: [112, 63, 0], translate: [4, 28.5, 3.5], texture: res/kanata.png}
-  - {type: mesh, model: res/cube4.ply, scale: [112, 63, 3.5], translate: [4, 28.5, 0], color: 0.5}
+  - {type: mesh, model: res/square.ply, scale: [112, 63, 0], translate: [4, 28.5, 1], texture: res/kanata.png}
+  - {type: mesh, model: res/cube4.ply, scale: [112, 63, 1], translate: [4, 28.5, 0], color: 0.5}
   - {type: plane, normal: [0, 0, -1], point: [0, 0, 450], color: [0.25, 0.75, 0.25], material: specular}
   - {type: plane, normal: [0, +1, 0], point: [0, 0, 0], color: 0.75}
   - {type: plane, normal: [0, -1, 0], point: [0, 100, 0], color: 0.75}
