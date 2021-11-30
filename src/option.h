@@ -5,9 +5,9 @@ struct Option {
     int spp = 1000;
     int ssaa = 2;
     int rounds = 1;
-    int bounces = 8;
-    double rr = 0;
-    int rr_bounces = 0;
+    int bounces = 4;
+    double rr = 0.9;
+    int rr_bounces = 20;
 
     Option() = default;
 

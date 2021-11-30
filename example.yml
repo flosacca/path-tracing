@@ -2,13 +2,23 @@
 # If 0 is specified or omitted, as many threads as possible will be used, which may cause your computer to lag.
 threads: 4
 
-image:
+rendering:
+  # path of output image, default to `output.png`
+  output: output.png
   # size of output image
   size: [240, 180]
   # sample per pixel
   spp: 100
-  # path of output image, default to `output.png`
-  output: output.png
+  # the number of sample in supersampling anti-aliasing, in square root
+  ssaa: 2
+  # the number of times that the color of a pixel will be clamped
+  rounds: 1
+  # minimum number of bounces
+  bounces: 4
+  # the fixed probability for RR (Russian Roulette) at the end, 0 for disabling RR
+  rr: 0.9
+  # the number of bounces after which the fixed probability is used for RR
+  rr_bounces: 20
 
 camera:
   # position of camera
@@ -53,10 +63,10 @@ camera:
 # material: object material, default to `diffuse`
 #
 # The transform is applied in the order of `scale` -> `rotate` -> `translate`.
-# scale: a scale factor for all axes
+# scale: a vector denoting the scale for each dimension
 # rotate: a `[angle, axis]` pair denoting the rotation,
 #   where `angle` is the rotation angle in degree and `axis` is a vector to denote the rotation axis.
-# translate: a `[x, y, z]` triple denoting the translation
+# translate: a vector denoting the translation for each dimension
 
 scene:
   - {type: plane, normal: [+1, 0, 0], point: [-50, 0, 0], color: [0.75, 0.25, 0.25]}
