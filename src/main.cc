@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
         opt = Option(e);
     }
     Scene scene = Scene::load(conf["scene"]);
+    scene.build();
     Camera cam = Camera::load(conf["camera"], (double) w / h);
     Image im(w, h);
     cam.render(scene, im, opt);

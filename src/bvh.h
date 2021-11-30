@@ -57,6 +57,9 @@ struct Box {
 };
 
 template <typename T>
+struct BVHTrait;
+
+template <typename T>
 struct BVH {
     std::vector<Box> tree;
     std::vector<T> leaves;
@@ -84,7 +87,7 @@ struct BVH {
         std::vector<Cache> caches;
         while (first != last) {
             auto&& obj = *first++;
-            Box box = obj.box();
+            Box box = BVHTrait<T>::box(obj);
             caches.push_back({std::move(obj), box, box.p1 + box.p2});
         }
 
@@ -128,7 +131,7 @@ struct BVH {
         fun::recursive([&] (auto dfs, int i, int j, int k) -> void {
             if (j - i <= 4) {
                 for (; i < j; ++i) {
-                    leaves[i].intersect(r, s);
+                    BVHTrait<T>::intersect(leaves[i], r, s);
                 }
             } else if (tree[k].intersects(r)) {
                 int m = (i + j) / 2;

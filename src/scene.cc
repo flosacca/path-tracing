@@ -18,7 +18,7 @@ Scene Scene::load(const Env& models) {
         if (type == "plane") {
             Vec normal = v("normal");
             Vec point = v("point");
-            scene.add<Plane>(normal, point, color, material, emission);
+            scene.planes.emplace_back(normal, point, color, material, emission);
 
         } else if (type == "sphere") {
             double radius = s0(t)("radius");

@@ -1,6 +1,5 @@
 #pragma once
 #include "model.h"
-#include "bvh.h"
 #include "image.h"
 
 class Mesh : public Model {
@@ -22,36 +21,27 @@ public:
          const Vec& emission = Vec(0))
         : Mesh(vertices, indices, texture, uvs, {}, material, emission) {}
 
-    void find(const Ray& r, Detail& s) const {
-        Triangle::Face f;
-        bvh.intersect(r, f);
-        if (f.t < s.t) {
-            Vec n = glm::normalize(f(f.s->n));
-            if (im) {
-                glm::dvec2 p = f(f.s->q);
-                Vec c = im.sample(p.x, p.y);
-                s = {f.t, n, c, a.e, a.m};
-            } else {
-                s = {f.t, n, a.c, a.e, a.m};
-            }
-        }
-    }
-
-private:
     struct Triangle {
         std::array<Vec, 3> p;
         std::array<Vec, 3> n;
         std::array<glm::dvec2, 3> q;
+        const Mesh* self;
 
         struct Face {
-            double t = INF;
-            double b1 = 0;
-            double b2 = 0;
-            const Triangle* s = nullptr;
+            double t;
+            double b1;
+            double b2;
+            const Triangle* s;
 
             template <typename T>
-            T operator()(const std::array<T, 3>& e) {
+            T operator()(const std::array<T, 3>& e) const {
                 return e[0] + b1 * e[1] + b2 * e[2];
+            }
+
+            void update(Detail& d) const {
+                if (t < d.t) {
+                    s->self->update(*this, d);
+                }
             }
         };
 
@@ -59,7 +49,8 @@ private:
             return Box::of(p[0], p[0] + p[1], p[0] + p[2]);
         }
 
-        void intersect(const Ray& r, Face& f) const {
+        template <typename T>
+        void intersect(const Ray& r, T& f) const {
             Vec v1 = glm::cross(r.d, p[2]);
             double d = glm::dot(v1, p[1]);
             if (cmp::zero(d)) {
@@ -77,13 +68,13 @@ private:
                 return;
             }
             double t = c * glm::dot(v2, p[2]);
-            if (cmp::greater(t, 0) && t < f.t) {
-                f = {t, b1, b2, this};
+            if (cmp::greater(t, 0) && t < static_cast<const Model::Result&>(f).t) {
+                f = Face {t, b1, b2, this};
             }
         }
     };
 
-    BVH<Triangle> bvh;
+    std::vector<Triangle> triangles;
     Image im;
 
     Mesh(const std::vector<Vec>& vertices,
@@ -113,7 +104,6 @@ private:
             }
             t.push_back({p, n});
         }
-        std::vector<Triangle> triangles;
         for (size_t i = 0; i != indices.size(); ++i) {
             if (cmp::zero(glm::length(t[i].n))) {
                 continue;
@@ -123,6 +113,16 @@ private:
             auto q = meta::when(im, [&] { return f(uvs, e); });
             triangles.push_back({t[i].p, n, q});
         }
-        bvh.build(triangles);
+    }
+
+    void update(const Triangle::Face& f, Detail& s) const {
+        Vec n = glm::normalize(f(f.s->n));
+        if (im) {
+            glm::dvec2 p = f(f.s->q);
+            Vec c = im.sample(p.x, p.y);
+            s = {f.t, n, c, a.e, a.m};
+        } else {
+            s = {f.t, n, a.c, a.e, a.m};
+        }
     }
 };

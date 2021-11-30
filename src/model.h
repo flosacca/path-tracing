@@ -1,5 +1,6 @@
 #pragma once
 #include "material.h"
+#include "bvh.h"
 
 class Model {
 public:
@@ -9,6 +10,12 @@ public:
         Vec c;
         Vec e;
         Material m;
+    };
+
+    struct Result {
+        double t;
+
+        void update(Detail&) {}
     };
 
 protected:
@@ -29,13 +36,31 @@ class Sphere : public Model {
 private:
     double r;
     Vec o;
+    Box m_box;
 
 public:
+    struct Result {
+        double t;
+        Vec n;
+        const Sphere* s;
+
+        void update(Detail& d) const {
+            if (t < d.t) {
+                s->update(*this, d);
+            }
+        }
+    };
+
     Sphere(double r, const Vec& o, const Vec& c,
         Material m = Material::diffuse(), const Vec& e = Vec(0)) :
-        Model(c, e, m), r(r), o(o) {}
+        Model(c, e, m), r(r), o(o), m_box(o - r, o + r) {}
 
-    void find(const Ray& ray, Detail& s) const {
+    Box box() const {
+        return m_box;
+    }
+
+    template <typename T>
+    void intersect(const Ray& ray, T& f) const {
         Vec v = o - ray.o;
         double b = glm::dot(v, ray.d);
         double d2 = r * r - (glm::dot(v, v) - b * b);
@@ -45,12 +70,16 @@ public:
             if (cmp::greater(t1, 0)) {
                 double t2 = b - d;
                 double t = cmp::greater(t2, 0) ? t2 : t1;
-                if (t < s.t) {
+                if (t < static_cast<const Model::Result&>(f).t) {
                     Vec n = glm::normalize(ray(t) - o);
-                    s = {t, n, a.c, a.e, a.m};
+                    f = Result {t, n, this};
                 }
             }
         }
+    }
+
+    void update(const Result& f, Detail& s) const {
+        s = {f.t, f.n, a.c, a.e, a.m};
     }
 };
 

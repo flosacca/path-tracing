@@ -49,6 +49,18 @@ public:
         apply(fun::destructor, *this);
     }
 
+    template <typename T>
+    operator T&() {
+        static_assert(which<meta::remove_const<T>> != -1);
+        return as<T>();
+    }
+
+    template <typename T>
+    operator const T&() const {
+        static_assert(which<T> != -1);
+        return as<T>();
+    }
+
     template <typename T, typename... Args>
     static TypeEnum of(Args&&... args) {
         return TypeEnum(meta::type<T>, static_cast<Args&&>(args)...);
