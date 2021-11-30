@@ -34,7 +34,7 @@ public:
         int w = device.width();
         int h = device.height();
         fprintf(stderr, "Start rendering with width = %d, height = %d, spp = %d\n", w, h, n * s2);
-        int m = opt.bagging;
+        int m = opt.rounds;
         int tot = 0;
         #pragma omp parallel for schedule(dynamic, 1)
         for (int y = h - 1; y >= 0; --y) {

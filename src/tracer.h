@@ -66,11 +66,11 @@ public:
             return Vec(0);
         }
         Vec e = q * s.e;
-        if (d >= opt.bounce) {
+        if (d >= opt.bounces) {
             if (!opt.rr) {
                 return e;
             }
-            double p = d >= opt.rr_bounce ? opt.rr : glm::compMax(s.c);
+            double p = d >= opt.rr_bounces ? opt.rr : glm::compMax(s.c);
             if (a.uniform() > p) {
                 return e;
             }
