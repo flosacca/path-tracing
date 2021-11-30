@@ -3,22 +3,21 @@
 #include "env.h"
 
 struct Scene {
-    std::vector<std::shared_ptr<Model>> models;
+    using Poly = TypeEnum<Plane, Sphere, Mesh>;
 
-    Scene() = default;
-
-    Scene(std::initializer_list<Model*> a) :
-        models(a.begin(), a.end()) {}
+    std::vector<Poly> models;
 
     void find(const Ray& r, Model::Detail& s) const {
         for (const auto& p : models) {
-            p->find(r, s);
+            p.then([&] (const auto& m) {
+                m.find(r, s);
+            });
         }
     }
 
     template <typename T, typename... Args>
     void add(Args&&... args) {
-        models.push_back(std::make_shared<T>(std::forward<Args>(args)...));
+        models.push_back(T(std::forward<Args>(args)...));
     }
 
     static Scene load(const Env& models);

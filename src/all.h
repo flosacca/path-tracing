@@ -7,7 +7,6 @@
 #include <cstring>
 #include <functional>
 #include <limits>
-#include <memory>
 #include <new>
 #include <random>
 #include <string>

@@ -11,10 +11,6 @@ public:
         Material m;
     };
 
-    virtual void find(const Ray&, Detail&) const = 0;
-
-    virtual ~Model() = default;
-
 protected:
     struct Attr {
         Vec c;
@@ -39,7 +35,7 @@ public:
         Material m = Material::diffuse(), const Vec& e = Vec(0)) :
         Model(c, e, m), r(r), o(o) {}
 
-    void find(const Ray& ray, Detail& s) const final {
+    void find(const Ray& ray, Detail& s) const {
         Vec v = o - ray.o;
         double b = glm::dot(v, ray.d);
         double d2 = r * r - (glm::dot(v, v) - b * b);
@@ -67,7 +63,7 @@ public:
         Material m = Material::diffuse(), const Vec& e = Vec(0)) :
         Model(c, e, m), n(n), p(p) {}
 
-    void find(const Ray& r, Detail& s) const final {
+    void find(const Ray& r, Detail& s) const {
         double d = glm::dot(r.d, n);
         if (cmp::nonzero(d)) {
             double t = glm::dot(p - r.o, n) / d;
