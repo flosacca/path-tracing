@@ -1,12 +1,9 @@
 #pragma once
 
 namespace num {
-template <typename T>
-constexpr T eps();
-
-template <typename T>
+template <typename T, typename D>
 struct Comparator {
-    constexpr static T EPS = num::eps<T>();
+    constexpr static T EPS = T(1) / D::value;
 
     constexpr static bool less(T x, T y) {
         return x < y - EPS;

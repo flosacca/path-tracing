@@ -32,12 +32,10 @@ struct Destructor {
 constexpr Destructor destructor {};
 } // namespace fun
 
-template <>
-constexpr double num::eps() {
-    return 1e-4;
-}
+template <typename T, intmax_t D>
+using Comparator = num::Comparator<T, std::integral_constant<intmax_t, D>>;
 
-using cmp = num::Comparator<double>;
+using cmp = Comparator<double, 10000>;
 
 struct Ray {
     Vec o, d;
