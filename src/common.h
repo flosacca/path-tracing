@@ -37,6 +37,8 @@ using Comparator = num::Comparator<T, std::integral_constant<intmax_t, D>>;
 
 using cmp = Comparator<float, 10000>;
 
+constexpr float T_MIN = 0.01;
+
 struct Ray {
     Vec o, d;
 

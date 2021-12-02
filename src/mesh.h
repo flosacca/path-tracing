@@ -30,9 +30,9 @@ public:
             if (im) {
                 glm::vec2 p = f(f.s->q);
                 Vec c = im.sample(p.x, p.y);
-                s = {f.t, n, c, a.e, a.m};
+                s = {f.t, n, c, a.e, a.m, this};
             } else {
-                s = {f.t, n, a.c, a.e, a.m};
+                s = {f.t, n, a.c, a.e, a.m, this};
             }
         }
     }
@@ -77,7 +77,7 @@ private:
                 return;
             }
             float t = c * glm::dot(v2, p[2]);
-            if (cmp::greater(t, 0) && t < f.t) {
+            if (t > T_MIN && t < f.t) {
                 f = {t, b1, b2, this};
             }
         }

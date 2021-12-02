@@ -55,9 +55,9 @@ public:
         for (int i = 0; i < w * h; ++i) {
             uint8_t* s = p + i * 3;
             Vec c = glm::pow(a[i], Vec(1 / 2.2f)) * 255.0f + 0.5f;
-            s[0] = c.r;
-            s[1] = c.g;
-            s[2] = c.b;
+            s[0] = c.x;
+            s[1] = c.y;
+            s[2] = c.z;
         }
         stbi_write_png(path.data(), w, h, 3, p, 0);
         free(p);

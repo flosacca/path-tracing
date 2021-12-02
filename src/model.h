@@ -9,6 +9,7 @@ public:
         Vec c;
         Vec e;
         Material m;
+        const void* p;
     };
 
 protected:
@@ -27,6 +28,8 @@ protected:
 
 class Sphere : public Model {
 private:
+    // using cmp = Comparator<float, 100>;
+
     float r;
     Vec o;
 
@@ -42,12 +45,12 @@ public:
         if (cmp::greater(d2, 0)) {
             float d = glm::sqrt(d2);
             float t1 = b + d;
-            if (cmp::greater(t1, 0)) {
+            if (t1 > T_MIN) {
                 float t2 = b - d;
-                float t = cmp::greater(t2, 0) ? t2 : t1;
+                float t = t2 > T_MIN ? t2 : t1;
                 if (t < s.t) {
                     Vec n = glm::normalize(ray(t) - o);
-                    s = {t, n, a.c, a.e, a.m};
+                    s = {t, n, a.c, a.e, a.m, this};
                 }
             }
         }
@@ -67,8 +70,8 @@ public:
         float d = glm::dot(r.d, n);
         if (cmp::nonzero(d)) {
             float t = glm::dot(p - r.o, n) / d;
-            if (cmp::greater(t, 0) && t < s.t) {
-                s = {t, n, a.c, a.e, a.m};
+            if (t > T_MIN && t < s.t) {
+                s = {t, n, a.c, a.e, a.m, this};
             }
         }
     }

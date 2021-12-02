@@ -10,6 +10,7 @@ private:
     Option opt;
     int d = 0;
     float q = 1;
+    const void* last = nullptr;
 
     struct Visitor {
         RayTracer& self;
@@ -17,6 +18,7 @@ private:
         Vec n;
 
         Vec visit(const Material::Diffuse& m) {
+            // self.last = nullptr;
             float l = glm::dot(r.d, n);
             float phi = self.a.uniform(2 * PI);
             float rho = glm::sqrt(self.a.uniform());
@@ -25,12 +27,14 @@ private:
         }
 
         Vec visit(const Material::Specular& m) {
+            self.last = nullptr;
             float l = glm::dot(r.d, n);
             Vec d = r.d - 2.0f * l * n;
             return self.radiance(Ray(r.o, d));
         }
 
         Vec visit(const Material::Refractive& m) {
+            self.last = nullptr;
             float l = glm::dot(r.d, n);
             constexpr float n0 = 1;
             float eta = std::signbit(l) ? n0 / m.n : m.n / n0;
@@ -44,7 +48,10 @@ private:
             float R0 = num::pow<2>((m.n - n0) / (m.n + n0));
             float R = R0 + (1 - R0) * num::pow<5>(1 - std::min(k, glm::abs(l)));
             if (self.d <= 2) {
-                return R * self.radiance(Ray(r.o, d)) + (1 - R) * self.radiance(Ray(r.o, t));
+                // return R * self.radiance(Ray(r.o, d)) + (1 - R) * self.radiance(Ray(r.o, t));
+                Vec e = R * self.radiance(Ray(r.o, d));
+                self.last = nullptr;
+                return e + (1 - R) * self.radiance(Ray(r.o, t));
             }
             float p = 0.25f + 0.5f * R;
             if (self.a.uniform() < p) {
@@ -62,6 +69,13 @@ public:
     Vec radiance(const Ray& r) {
         Model::Detail s;
         scene.find(r, s);
+        if (d > 0 && last) {
+            if (last == s.p && cmp::zero(glm::length(s.e))) {
+                Vec x = r(s.t);
+                fprintf(stderr, "\noops\n");
+            }
+        }
+        last = s.p;
         if (s.t == INF) {
             return Vec(0);
         }
