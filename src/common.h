@@ -1,4 +1,5 @@
 #pragma once
+#include "meta/fun.h"
 
 namespace fun {
     struct Recursive {
@@ -14,14 +15,19 @@ namespace fun {
     };
 
     template <typename F>
-    inline Recursive::Y<std::decay_t<F>> recursive(F&& f) {
-        return {f};
+    inline Recursive::Y<meta::decay<F>> recursive(F&& f) {
+        return {std::forward<F>(f)};
     }
 
-    template <typename F>
-    inline auto eval_if(bool c, F&& f) {
-        return c ? f() : std::decay_t<decltype(f())> {};
-    }
+    struct Destructor {
+        template <typename T>
+        void operator()(T&& v) const {
+            using V = meta::decay<T>;
+            v.~V();
+        }
+    };
+
+    constexpr Destructor destructor {};
 }
 
 using Vec = glm::dvec3;
@@ -161,50 +167,6 @@ namespace num {
     }
 
     using namespace eps;
-}
-
-namespace mp {
-    template <typename T>
-    struct identity {
-        using type = T;
-    };
-
-    template <typename... Ts>
-    constexpr size_t max_size() {
-        return num::max(sizeof(Ts)...);
-    }
-
-    template <typename S>
-    constexpr size_t index() {
-        return -1;
-    }
-
-    template <typename S, typename T, typename... Ts>
-    constexpr size_t index() {
-        if (std::is_same<S, T>::value) {
-            return 0;
-        }
-        constexpr size_t i = mp::index<S, Ts...>();
-        return i == -1 ? -1 : i + 1;
-    }
-
-    template <typename S, typename F>
-    inline auto select(size_t i, F&& f) {
-        if (i == 0) {
-            return f(mp::identity<S>());
-        } else {
-            throw std::runtime_error("no type of given index");
-        }
-    }
-
-    template <typename S, typename T, typename... Ts, typename F>
-    inline auto select(size_t i, F&& f) {
-        if (i == 0) {
-            return f(mp::identity<S>());
-        } else {
-            return mp::select<T, Ts...>(i - 1, std::forward<F>(f));
-        }
-    }
 }
 
 struct Ray {

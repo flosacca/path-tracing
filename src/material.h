@@ -10,9 +10,13 @@ struct Material {
         double n = 1.5;
     };
 
+    using Poly = TypeEnum<Diffuse, Specular, Refractive>;
+
+    Poly p;
+
     template <typename T, typename... Args>
     static Material make(Args&&... args) {
-        return {Poly::of<T>(std::forward<Args>(args)...)};
+        return {T {std::forward<Args>(args)...}};
     }
 
     template <typename... Args>
@@ -36,8 +40,4 @@ struct Material {
             return v.visit(m);
         });
     }
-
-    using Poly = TypeEnum<Diffuse, Specular, Refractive>;
-
-    Poly p;
 };

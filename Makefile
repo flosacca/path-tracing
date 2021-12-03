@@ -2,12 +2,12 @@ CXXFLAGS = -std=c++14 -mavx2 -mfma -O2 -flto -fopenmp $(INCLUDES)
 
 INCLUDES := -Ilib -Ilib/yaml-cpp/include
 OBJS := build/main.o \
-	build/scene.o \
-	build/ext/ply.o \
-	build/ext/image.o \
-	build/libyaml-cpp.a
+        build/scene.o \
+        build/ext/ply.o \
+        build/ext/image.o \
+        build/libyaml-cpp.a
 PCH := build/all.gch
-HEADERS := $(wildcard src/*.h)
+HEADERS := $(shell find src -type f -name '*.h')
 
 all: mkdir main
 

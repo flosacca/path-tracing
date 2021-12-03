@@ -100,7 +100,7 @@ private:
           has_texture(uvs.size()) {
         auto f = [] (auto&& c, auto&& e) {
             auto i = e[0], j = e[1], k = e[2];
-            using T = std::decay_t<decltype(c[i])>;
+            using T = meta::decay<decltype(c[i])>;
             return std::array<T, 3> {c[i], c[j] - c[i], c[k] - c[i]};
         };
         struct Pair {
@@ -123,7 +123,7 @@ private:
             }
             auto&& e = indices[i];
             auto n = f(normals, e);
-            auto q = fun::eval_if(has_texture, [&] { return f(uvs, e); });
+            auto q = meta::when(has_texture, [&] { return f(uvs, e); });
             triangles.push_back({t[i].p, n, q});
         }
         bvh.build(triangles);

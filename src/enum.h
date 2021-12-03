@@ -4,19 +4,76 @@
 template <typename... Ts>
 class TypeEnum {
 public:
+    template <typename T>
+    constexpr static int which = meta::index<T, Ts...>;
+
+    TypeEnum() = default;
+
+    TypeEnum(const TypeEnum& rhs) {
+        rhs.then([&] (auto&& v) {
+            take(v);
+        });
+    }
+
+    TypeEnum(TypeEnum&& rhs) {
+        rhs.then([&] (auto&& v) {
+            take(std::move(v));
+        });
+    }
+
+    template <typename T>
+    TypeEnum(T&& v) {
+        take(static_cast<T&&>(v));
+    }
+
+    TypeEnum& operator=(const TypeEnum& rhs) {
+        this->~TypeEnum();
+        new (this) TypeEnum(rhs);
+        return *this;
+    }
+
+    TypeEnum& operator=(TypeEnum&& rhs) {
+        this->~TypeEnum();
+        new (this) TypeEnum(std::move(rhs));
+        return *this;
+    }
+
+    template <typename T>
+    TypeEnum& operator=(T&& v) {
+        this->~TypeEnum();
+        new (this) TypeEnum(static_cast<T&&>(v));
+        return *this;
+    }
+
+    ~TypeEnum() {
+        apply(fun::destructor, *this);
+    }
+
     template <typename T, typename... Args>
     static TypeEnum of(Args&&... args) {
-        TypeEnum r;
-        r.tag = tag_of<T>();
-        new (&r.storage) T {std::forward<Args>(args)...};
-        return r;
+        return TypeEnum(meta::type<T>, static_cast<Args&&>(args)...);
+    }
+
+    template <typename T, typename... Args>
+    void construct(Args&&... args) {
+        static_assert(which<T> != -1);
+        tag = which<T>;
+        new (&storage) T (static_cast<Args&&>(args)...);
+    }
+
+    template <typename F>
+    auto then(F&& f) {
+        return apply(static_cast<F&&>(f), *this);
     }
 
     template <typename F>
     auto then(F&& f) const {
-        return mp::select<Ts...>(tag, [&] (auto i) {
-            return f(as<typename decltype(i)::type>());
-        });
+        return apply(static_cast<F&&>(f), *this);
+    }
+
+    template <typename T>
+    T& as() {
+        return *reinterpret_cast<T*>(storage);
     }
 
     template <typename T>
@@ -26,19 +83,31 @@ public:
 
     template <typename T>
     bool is() const {
-        return tag == tag_of<T>();
+        return tag == which<T>;
     }
 
-    size_t index() const {
+    int index() const {
         return tag;
     }
 
-    template <typename T>
-    constexpr static size_t tag_of() {
-        return mp::index<T, Ts...>();
+private:
+    template <typename T, typename... Args>
+    TypeEnum(T type, Args&&... args) {
+        construct<typename decltype(type)::type>(static_cast<Args&&>(args)...);
     }
 
-private:
-    size_t tag = -1;
-    uint8_t storage[mp::max_size<Ts...>()];
+    template <typename T>
+    void take(T&& v) {
+        construct<meta::decay<T>>(static_cast<T&&>(v));
+    }
+
+    template <typename F, typename Self>
+    static auto apply(F&& f, Self&& self) {
+        return meta::select<Ts...>(self.tag, [&] (auto type) {
+            return f(self.template as<typename decltype(type)::type>());
+        });
+    }
+
+    alignas(num::max(alignof(Ts)...)) uint8_t storage[num::max(sizeof(Ts)...)];
+    int tag = -1;
 };
