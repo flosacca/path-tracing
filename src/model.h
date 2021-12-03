@@ -27,6 +27,8 @@ protected:
 
 class Sphere : public Model {
 private:
+    using cmp = Comparator<float, 100>;
+
     float r;
     Vec o;
 

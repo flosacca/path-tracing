@@ -44,13 +44,13 @@ private:
             float R0 = num::pow<2>((m.n - n0) / (m.n + n0));
             float R = R0 + (1 - R0) * num::pow<5>(1 - std::min(k, glm::abs(l)));
             if (self.d <= 2) {
-                return R * self.radiance(Ray(r.o, d)) + (1 - R) * self.radiance(Ray(r.o, t));
+                return R * self.radiance(Ray(r.o, d)) + (1 - R) * self.radiance(Ray(r(cmp::EPS * 2), t));
             }
             float p = 0.25f + 0.5f * R;
             if (self.a.uniform() < p) {
                 return self.radiance(Ray(r.o, d)) * (R / p);
             } else {
-                return self.radiance(Ray(r.o, t)) * ((1 - R) / (1 - p));
+                return self.radiance(Ray(r(cmp::EPS * 2), t)) * ((1 - R) / (1 - p));
             }
         }
     };
@@ -76,7 +76,7 @@ public:
             }
             q /= p;
         }
-        Visitor v {*this, Ray(r(s.t), r.d), s.n};
+        Visitor v {*this, Ray(r(s.t - cmp::EPS), r.d), s.n};
         float q0 = q;
         ++d;
         e += s.c * s.m.radiance(v);

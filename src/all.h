@@ -15,6 +15,7 @@
 #include <vector>
 
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+#define GLM_FORCE_AVX2
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <glm/gtx/component_wise.hpp>

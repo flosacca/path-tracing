@@ -3,7 +3,7 @@
 using Vec = glm::vec3;
 
 constexpr float INF = std::numeric_limits<float>::infinity();
-constexpr float PI = glm::pi<float>();
+constexpr float PI = 3.14159265358979323846264338327950288;
 
 namespace UnitVec {
 inline Vec from_z(float phi, float z) {
