@@ -27,7 +27,7 @@ public:
         bvh.intersect(r, f);
         if (f.t < s.t) {
             Vec n = glm::normalize(f(f.s->n));
-            if (has_texture) {
+            if (im) {
                 glm::dvec2 p = f(f.s->q);
                 Vec c = im.sample(p.x, p.y);
                 s = {f.t, n, c, a.e, a.m};
@@ -83,10 +83,8 @@ private:
         }
     };
 
-    std::vector<Triangle> triangles;
     BVH<Triangle> bvh;
     Image im;
-    bool has_texture;
 
     Mesh(const std::vector<Vec>& vertices,
          const std::vector<Index>& indices,
@@ -95,9 +93,7 @@ private:
          const Vec& color,
          Material material,
          const Vec& emission)
-        : Model(color, emission, material),
-          im(texture),
-          has_texture(uvs.size()) {
+        : Model(color, emission, material), im(texture) {
         auto f = [] (auto&& c, auto&& e) {
             auto i = e[0], j = e[1], k = e[2];
             using T = meta::decay<decltype(c[i])>;
@@ -117,13 +113,14 @@ private:
             }
             t.push_back({p, n});
         }
+        std::vector<Triangle> triangles;
         for (size_t i = 0; i != indices.size(); ++i) {
             if (num::zero(glm::length(t[i].n))) {
                 continue;
             }
             auto&& e = indices[i];
             auto n = f(normals, e);
-            auto q = meta::when(has_texture, [&] { return f(uvs, e); });
+            auto q = meta::when(im, [&] { return f(uvs, e); });
             triangles.push_back({t[i].p, n, q});
         }
         bvh.build(triangles);

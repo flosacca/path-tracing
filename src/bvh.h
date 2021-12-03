@@ -43,28 +43,23 @@ struct Box {
         return {glm::min(v1, box.p1), glm::max(v1, box.p2)};
     }
 
-    template <typename It, typename F>
-    static Box fromRange(It l, It r, F f) {
+    template <typename It>
+    static Box fromRange(It l, It r) {
         Vec p1(+INF);
         Vec p2(-INF);
         while (l != r) {
-            Vec v = f(*l++);
+            Vec v = Vec(*l++);
             p1 = glm::min(p1, v);
             p2 = glm::max(p2, v);
         }
         return {p1, p2};
-    }
-
-    template <typename It>
-    static Box fromRange(It l, It r) {
-        return fromRange(l, r, [] (const Vec& v) { return v; });
     }
 };
 
 template <typename T>
 struct BVH {
     std::vector<Box> tree;
-    std::vector<const T*> leaves;
+    std::vector<T> leaves;
     int n = 0;
 
     static int size(int n) {
@@ -76,34 +71,37 @@ struct BVH {
 
     template <typename It>
     void build(It first, It last) {
-        It w = first;
         struct Cache {
-            const T* obj;
+            T obj;
             Box box;
             Vec mid;
+
+            explicit operator Vec() const {
+                return mid;
+            }
         };
+
         std::vector<Cache> caches;
         while (first != last) {
-            const T& e = *first++;
-            Box box = e.box();
-            caches.push_back({&e, box, box.p1 + box.p2});
+            auto&& obj = *first++;
+            Box box = obj.box();
+            caches.push_back({std::move(obj), box, box.p1 + box.p2});
         }
+
         n = caches.size();
+        leaves.resize(n);
+        tree.resize(size(n));
         if (n == 0) {
             return;
         }
-        leaves.resize(n);
-        tree.resize(size(n));
+
         auto p = caches.data();
-        auto f = [] (const Cache& cache) {
-            return cache.mid;
-        };
         fun::recursive([&] (auto dfs, int i, int j, int k) -> void {
             if (j - i == 1) {
-                leaves[i] = p[i].obj;
+                leaves[i] = std::move(p[i].obj);
                 tree[k] = p[i].box;
             } else {
-                Vec s = Box::fromRange(p + i, p + j, f).shape();
+                Vec s = Box::fromRange(p + i, p + j).shape();
                 double c[3] = {s.x, s.y, s.z};
                 int d = std::max_element(c, c + 3) - c;
                 int m = (i + j) / 2;
@@ -117,8 +115,9 @@ struct BVH {
         })(0, n, 1);
     }
 
-    void build(const std::vector<T>& a) {
-        build(a.begin(), a.end());
+    template <typename C>
+    void build(C&& c) {
+        build(std::begin(c), std::end(c));
     }
 
     template <typename S>
@@ -129,7 +128,7 @@ struct BVH {
         fun::recursive([&] (auto dfs, int i, int j, int k) -> void {
             if (j - i <= 4) {
                 for (; i < j; ++i) {
-                    leaves[i]->intersect(r, s);
+                    leaves[i].intersect(r, s);
                 }
             } else if (tree[k].intersects(r)) {
                 int m = (i + j) / 2;

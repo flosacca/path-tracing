@@ -4,7 +4,8 @@
 
 class Image {
 private:
-    int w, h;
+    int w = 0;
+    int h = 0;
     std::vector<Vec> a;
 
     Image(int w, int h, uint8_t* p) : Image(w, h) {
@@ -17,7 +18,7 @@ private:
     }
 
 public:
-    Image() {}
+    Image() = default;
 
     Image(int w, int h) : w(w), h(h), a(w * h) {}
 
@@ -33,6 +34,10 @@ public:
 
     int height() const {
         return h;
+    }
+
+    explicit operator bool() const {
+        return a.size();
     }
 
     void set(int i, int j, const Vec& c) {
