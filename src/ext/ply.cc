@@ -20,8 +20,8 @@ inline static PlyWrapper& get(const std::shared_ptr<void>& s) {
 Ply::Ply(const std::string& path) :
     s(new PlyWrapper(path), [] (void* p) { delete cast(p); }) {}
 
-std::vector<double> Ply::getVertexProperty(const std::string& name) const {
-    return get(s).vertex_el.getProperty<double>(name);
+std::vector<float> Ply::getVertexProperty(const std::string& name) const {
+    return get(s).vertex_el.getProperty<float>(name);
 }
 
 std::vector<std::vector<int>> Ply::getFaceIndices() const {

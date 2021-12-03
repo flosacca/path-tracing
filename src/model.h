@@ -4,7 +4,7 @@
 class Model {
 public:
     struct Detail {
-        double t = INF;
+        float t = INF;
         Vec n;
         Vec c;
         Vec e;
@@ -27,24 +27,24 @@ protected:
 
 class Sphere : public Model {
 private:
-    double r;
+    float r;
     Vec o;
 
 public:
-    Sphere(double r, const Vec& o, const Vec& c,
+    Sphere(float r, const Vec& o, const Vec& c,
         Material m = Material::diffuse(), const Vec& e = Vec(0)) :
         Model(c, e, m), r(r), o(o) {}
 
     void find(const Ray& ray, Detail& s) const {
         Vec v = o - ray.o;
-        double b = glm::dot(v, ray.d);
-        double d2 = r * r - (glm::dot(v, v) - b * b);
+        float b = glm::dot(v, ray.d);
+        float d2 = r * r - (glm::dot(v, v) - b * b);
         if (cmp::greater(d2, 0)) {
-            double d = glm::sqrt(d2);
-            double t1 = b + d;
+            float d = glm::sqrt(d2);
+            float t1 = b + d;
             if (cmp::greater(t1, 0)) {
-                double t2 = b - d;
-                double t = cmp::greater(t2, 0) ? t2 : t1;
+                float t2 = b - d;
+                float t = cmp::greater(t2, 0) ? t2 : t1;
                 if (t < s.t) {
                     Vec n = glm::normalize(ray(t) - o);
                     s = {t, n, a.c, a.e, a.m};
@@ -64,9 +64,9 @@ public:
         Model(c, e, m), n(n), p(p) {}
 
     void find(const Ray& r, Detail& s) const {
-        double d = glm::dot(r.d, n);
+        float d = glm::dot(r.d, n);
         if (cmp::nonzero(d)) {
-            double t = glm::dot(p - r.o, n) / d;
+            float t = glm::dot(p - r.o, n) / d;
             if (cmp::greater(t, 0) && t < s.t) {
                 s = {t, n, a.c, a.e, a.m};
             }

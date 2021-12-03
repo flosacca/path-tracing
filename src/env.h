@@ -41,10 +41,10 @@ namespace env {
                 return d;
             }
             if (e.IsScalar()) {
-                return Vec(fetch(e, 0.0));
+                return Vec(fetch(e, 0.0f));
             }
             if (e.IsSequence()) {
-                auto s = accessor(0.0)(e);
+                auto s = accessor(0.0f)(e);
                 return Vec(s(0), s(1), s(2));
             }
             return d;
@@ -69,7 +69,7 @@ namespace env {
                 return Material::specular();
             }
             if (t == "refractive") {
-                constexpr double n = 1.5;
+                constexpr float n = 1.5f;
                 return Material::refractive(k & 1 ? n : fetch(e[1], n));
             }
             return d;

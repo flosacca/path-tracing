@@ -5,7 +5,7 @@ class Camera {
 private:
     Vec origin, dir, right, up;
 
-    static double transform(double p, int n, int i, int j, double d) {
+    static float transform(float p, int n, int i, int j, float d) {
         // (i + j * p + p / 2 + d / 2) / n * 2 - 1
         return (i * 2 + (j * 2 + 1) * p + d) / n - 1;
     }
@@ -13,14 +13,14 @@ private:
 public:
     Camera(const Vec& origin,
            const Vec& direction,
-           double aspect,
-           double fov = PI / 4,
+           float aspect,
+           float fov = PI / 4,
            const Vec& worldUp = Vec(0, 1, 0))
         : origin(origin),
           dir(direction),
           right(glm::cross(dir, worldUp)),
           up(glm::cross(right, dir)) {
-        double k = glm::tan(fov / 2);
+        float k = glm::tan(fov / 2);
         right *= k / glm::length(right) * aspect;
         up *= k / glm::length(up);
     }
@@ -29,7 +29,7 @@ public:
     void render(const Scene& scene, Device& device, const Option& opt) {
         int s1 = opt.ssaa;
         int s2 = num::pow<2>(s1);
-        double inv_s1 = 1.0 / s1;
+        float inv_s1 = 1.0f / s1;
         int n = opt.spp / s2;
         int w = device.width();
         int h = device.height();
@@ -46,20 +46,20 @@ public:
                     int i = 0;
                     for (int j = 1; j <= m; ++j) {
                         Vec sum(0);
-                        double i0 = i;
+                        float i0 = i;
                         // (i / n) < (j / m)
                         for (; i * m < j * n; ++i) {
-                            double nx = transform(inv_s1, w, x, k % s1, samp.triangle());
-                            double ny = transform(inv_s1, h, y, k / s1, samp.triangle());
+                            float nx = transform(inv_s1, w, x, k % s1, samp.triangle());
+                            float ny = transform(inv_s1, h, y, k / s1, samp.triangle());
                             sum += tracer.radiance(Ray(origin, glm::normalize(nx * right + ny * up + dir)));
                         }
-                        c += glm::clamp(sum / (i - i0), 0.0, 1.0);
+                        c += glm::clamp(sum / (i - i0), 0.0f, 1.0f);
                     }
                 }
-                device.set(x, h - y - 1, c * (1.0 / (m * s2)));
+                device.set(x, h - y - 1, c * (1.0f / (m * s2)));
                 #pragma omp atomic
                 ++tot;
-                fprintf(stderr, "\rRendered: %5.2f%%", 100.0 * tot / (w * h));
+                fprintf(stderr, "\rRendered: %5.2f%%", 100.0f * tot / (w * h));
                 if (tot == w * h) {
                     fputs("\n", stderr);
                 }
@@ -67,11 +67,11 @@ public:
         }
     }
 
-    static Camera load(const Env& t, double aspect) {
+    static Camera load(const Env& t, float aspect) {
         auto v = env::accessor(Vec(0))(t);
         Vec o = v("origin");
         Vec d = v("direction");
-        double fov = glm::radians(env::fetch(t["fov"], 45.0));
+        float fov = glm::radians(env::fetch(t["fov"], 45.0f));
         return Camera(o, d, aspect, fov);
     }
 };

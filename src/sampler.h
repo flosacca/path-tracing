@@ -8,12 +8,12 @@ private:
 public:
     Sampler(uint32_t s) : g(s) {}
 
-    double uniform(double l = 1.0) {
-        return std::uniform_real_distribution<double>(0.0, l)(g);
+    float uniform(float l = 1.0f) {
+        return std::uniform_real_distribution<float>(0.0f, l)(g);
     }
 
-    double triangle() {
-        double x = 2 * uniform() - 1;
+    float triangle() {
+        float x = 2 * uniform() - 1;
         return (1 - glm::sqrt(1 - glm::abs(x))) * glm::sign(x);
     }
 };

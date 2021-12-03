@@ -1,41 +1,41 @@
 #pragma once
 
-using Vec = glm::dvec3;
+using Vec = glm::vec3;
 
-constexpr double INF = std::numeric_limits<double>::infinity();
-constexpr double PI = glm::pi<double>();
+constexpr float INF = std::numeric_limits<float>::infinity();
+constexpr float PI = glm::pi<float>();
 
 namespace UnitVec {
-inline Vec from_z(double phi, double z) {
-    double rho = glm::sqrt(1 - z * z);
-    double x = rho * glm::cos(phi);
-    double y = rho * glm::sin(phi);
+inline Vec from_z(float phi, float z) {
+    float rho = glm::sqrt(1 - z * z);
+    float x = rho * glm::cos(phi);
+    float y = rho * glm::sin(phi);
     return {x, y, z};
 }
 
-inline Vec from_theta(double phi, double theta) {
+inline Vec from_theta(float phi, float theta) {
     return from_z(phi, glm::cos(theta));
 }
 
 inline Vec ortho(const Vec& w) {
-    double theta = glm::acos(w.z);
-    double phi = glm::atan(w.y, w.x);
+    float theta = glm::acos(w.z);
+    float phi = glm::atan(w.y, w.x);
     return from_theta(phi, glm::mod(theta + PI / 2, PI));
 }
 
-inline Vec from_rho(double phi, double rho) {
-    double x = rho * glm::cos(phi);
-    double y = rho * glm::sin(phi);
-    double z = glm::sqrt(1 - rho * rho);
+inline Vec from_rho(float phi, float rho) {
+    float x = rho * glm::cos(phi);
+    float y = rho * glm::sin(phi);
+    float z = glm::sqrt(1 - rho * rho);
     return {x, y, z};
 }
 
-inline Vec from_rho(double phi, double rho, const Vec& i, const Vec& j, const Vec& k) {
+inline Vec from_rho(float phi, float rho, const Vec& i, const Vec& j, const Vec& k) {
     Vec p = from_rho(phi, rho);
     return p.x * i + p.y * j + p.z * k;
 }
 
-inline Vec from_rho(double phi, double rho, const Vec& k) {
+inline Vec from_rho(float phi, float rho, const Vec& k) {
     Vec i = ortho(k);
     Vec j = glm::cross(k, i);
     return from_rho(phi, rho, i, j, k);

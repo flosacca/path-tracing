@@ -17,7 +17,7 @@ public:
     Mesh(const std::vector<Vec>& vertices,
          const std::vector<Index>& indices,
          const Image& texture,
-         const std::vector<glm::dvec2>& uvs,
+         const std::vector<glm::vec2>& uvs,
          Material material = Material::diffuse(),
          const Vec& emission = Vec(0))
         : Mesh(vertices, indices, texture, uvs, {}, material, emission) {}
@@ -28,7 +28,7 @@ public:
         if (f.t < s.t) {
             Vec n = glm::normalize(f(f.s->n));
             if (im) {
-                glm::dvec2 p = f(f.s->q);
+                glm::vec2 p = f(f.s->q);
                 Vec c = im.sample(p.x, p.y);
                 s = {f.t, n, c, a.e, a.m};
             } else {
@@ -41,12 +41,12 @@ private:
     struct Triangle {
         std::array<Vec, 3> p;
         std::array<Vec, 3> n;
-        std::array<glm::dvec2, 3> q;
+        std::array<glm::vec2, 3> q;
 
         struct Face {
-            double t = INF;
-            double b1 = 0;
-            double b2 = 0;
+            float t = INF;
+            float b1 = 0;
+            float b2 = 0;
             const Triangle* s = nullptr;
 
             template <typename T>
@@ -61,22 +61,22 @@ private:
 
         void intersect(const Ray& r, Face& f) const {
             Vec v1 = glm::cross(r.d, p[2]);
-            double d = glm::dot(v1, p[1]);
+            float d = glm::dot(v1, p[1]);
             if (cmp::zero(d)) {
                 return;
             }
-            double c = 1 / d;
+            float c = 1 / d;
             Vec u = r.o - p[0];
-            double b1 = c * glm::dot(v1, u);
+            float b1 = c * glm::dot(v1, u);
             if (!cmp::inclusive(b1, 0, 1)) {
                 return;
             }
             Vec v2 = glm::cross(u, p[1]);
-            double b2 = c * glm::dot(v2, r.d);
+            float b2 = c * glm::dot(v2, r.d);
             if (!cmp::inclusive(b2, 0, 1 - b1)) {
                 return;
             }
-            double t = c * glm::dot(v2, p[2]);
+            float t = c * glm::dot(v2, p[2]);
             if (cmp::greater(t, 0) && t < f.t) {
                 f = {t, b1, b2, this};
             }
@@ -89,7 +89,7 @@ private:
     Mesh(const std::vector<Vec>& vertices,
          const std::vector<Index>& indices,
          const Image& texture,
-         const std::vector<glm::dvec2>& uvs,
+         const std::vector<glm::vec2>& uvs,
          const Vec& color,
          Material material,
          const Vec& emission)

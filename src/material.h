@@ -7,7 +7,7 @@ struct Material {
     struct Specular {};
 
     struct Refractive {
-        double n = 1.5;
+        float n = 1.5f;
     };
 
     using Poly = TypeEnum<Diffuse, Specular, Refractive>;

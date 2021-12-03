@@ -6,7 +6,7 @@ struct Option {
     int ssaa = 2;
     int rounds = 1;
     int bounces = 4;
-    double rr = 0.9;
+    float rr = 0.9f;
     int rr_bounces = 20;
 
     Option() = default;

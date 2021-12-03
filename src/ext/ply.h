@@ -7,7 +7,7 @@ class Ply {
 public:
     Ply(const std::string&);
 
-    std::vector<double> getVertexProperty(const std::string&) const;
+    std::vector<float> getVertexProperty(const std::string&) const;
 
     std::vector<std::vector<int>> getFaceIndices() const;
 

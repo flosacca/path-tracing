@@ -35,7 +35,7 @@ constexpr Destructor destructor {};
 template <typename T, intmax_t D>
 using Comparator = num::Comparator<T, std::integral_constant<intmax_t, D>>;
 
-using cmp = Comparator<double, 10000>;
+using cmp = Comparator<float, 10000>;
 
 struct Ray {
     Vec o, d;
@@ -43,7 +43,7 @@ struct Ray {
     Ray(const Vec& o, const Vec& d) :
         o(o), d(d) {}
 
-    Vec operator()(double t) const {
+    Vec operator()(float t) const {
         return o + t * d;
     }
 };

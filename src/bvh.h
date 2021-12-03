@@ -10,10 +10,10 @@ struct Box {
         p1(p1), p2(p2) {}
 
     bool intersects(const Ray& r) const {
-        glm::dvec2 t(-INF, +INF);
+        glm::vec2 t(-INF, +INF);
         for (int i = 0; i < 3; ++i) {
             if (cmp::nonzero(r.d[i])) {
-                glm::dvec2 s(p1[i] - r.o[i], p2[i] - r.o[i]);
+                glm::vec2 s(p1[i] - r.o[i], p2[i] - r.o[i]);
                 s /= r.d[i];
                 if (s.x < s.y) {
                     t = {std::max(t.x, s.x), std::min(t.y, s.y)};
@@ -102,7 +102,7 @@ struct BVH {
                 tree[k] = p[i].box;
             } else {
                 Vec s = Box::fromRange(p + i, p + j).shape();
-                double c[3] = {s.x, s.y, s.z};
+                float c[3] = {s.x, s.y, s.z};
                 int d = std::max_element(c, c + 3) - c;
                 int m = (i + j) / 2;
                 std::nth_element(p + i, p + m, p + j, [&] (const Cache& a, const Cache& b) {

@@ -4,7 +4,7 @@
 Scene Scene::load(const Env& models) {
     Scene scene;
     auto v0 = env::accessor(Vec(0));
-    auto s0 = env::accessor(0.0);
+    auto s0 = env::accessor(0.0f);
 
     for (const Env& t : models) {
         auto v = v0(t);
@@ -21,7 +21,7 @@ Scene Scene::load(const Env& models) {
             scene.add<Plane>(normal, point, color, material, emission);
 
         } else if (type == "sphere") {
-            double radius = s0(t)("radius");
+            float radius = s0(t)("radius");
             Vec center = v("center");
             scene.add<Sphere>(radius, center, color, material, emission);
 
@@ -43,8 +43,8 @@ Scene Scene::load(const Env& models) {
             Vec s = env::fetch(t["scale"], Vec(1));
             Vec w = v("translate");
             if (auto r = t["rotate"]) {
-                glm::dmat3 f = glm::rotate(glm::radians(s0(r)(0)), v0(r)(1));
-                f *= glm::dmat3(glm::scale(s));
+                glm::mat3 f = glm::rotate(glm::radians(s0(r)(0)), v0(r)(1));
+                f *= glm::mat3(glm::scale(s));
                 for (Vec& p : vertices) {
                     p = f * p + w;
                 }
@@ -58,7 +58,7 @@ Scene Scene::load(const Env& models) {
             if (im_path.size()) {
                 auto prop_u = ply.getVertexProperty("u");
                 auto prop_v = ply.getVertexProperty("v");
-                std::vector<glm::dvec2> uvs;
+                std::vector<glm::vec2> uvs;
                 for (size_t i = 0; i != prop_x.size(); ++i) {
                     uvs.push_back({prop_u[i], prop_v[i]});
                 }

@@ -12,7 +12,7 @@ private:
         a.resize(w * h);
         for (int i = 0; i < w * h; ++i) {
             uint8_t* s = p + i * 3;
-            a[i] = glm::pow(Vec(s[0], s[1], s[2]) / 255.0, Vec(2.2));
+            a[i] = glm::pow(Vec(s[0], s[1], s[2]) / 255.0f, Vec(2.2f));
         }
         stbi_image_free(p);
     }
@@ -44,9 +44,9 @@ public:
         a[w * j + i] = c;
     }
 
-    Vec sample(double u, double v) const {
-        int i = u * (w - 1) + 0.5;
-        int j = v * (h - 1) + 0.5;
+    Vec sample(float u, float v) const {
+        int i = u * (w - 1) + 0.5f;
+        int j = v * (h - 1) + 0.5f;
         return a[w * (h - j - 1) + i];
     }
 
@@ -54,7 +54,7 @@ public:
         uint8_t* p = (uint8_t*) malloc(w * h * 3);
         for (int i = 0; i < w * h; ++i) {
             uint8_t* s = p + i * 3;
-            Vec c = glm::pow(a[i], Vec(1 / 2.2)) * 255.0 + 0.5;
+            Vec c = glm::pow(a[i], Vec(1 / 2.2f)) * 255.0f + 0.5f;
             s[0] = c.r;
             s[1] = c.g;
             s[2] = c.b;
