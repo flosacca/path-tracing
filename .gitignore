@@ -1,9 +1,2 @@
-/build/
-/lib/
-/models/
-/tmp/
-
-/main
-/run.mk
-
-*.png
+/*
+!/.gitignore
