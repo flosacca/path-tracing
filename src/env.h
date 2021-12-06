@@ -5,11 +5,11 @@ using Env = YAML::Node;
 
 namespace env {
     template <typename T>
-    struct fetch_t;
+    struct fetch_impl;
 
     template <typename T>
     inline T fetch(const Env& e, const T& d) {
-        return fetch_t<T>::call(e, d);
+        return fetch_impl<T>::call(e, d);
     }
 
     inline auto bind(const Env& e) {
@@ -28,14 +28,14 @@ namespace env {
     }
 
     template <typename T>
-    struct fetch_t {
+    struct fetch_impl {
         static T call(const Env& e, const T& d) {
             return e.as<T>(d);
         }
     };
 
     template <>
-    struct fetch_t<Vec> {
+    struct fetch_impl<Vec> {
         static Vec call(const Env& e, const Vec& d) {
             if (!e) {
                 return d;
@@ -52,7 +52,7 @@ namespace env {
     };
 
     template <>
-    struct fetch_t<Material> {
+    struct fetch_impl<Material> {
         static Material call(const Env& e, const Material& d) {
             if (!e) {
                 return d;

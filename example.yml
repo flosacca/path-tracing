@@ -2,11 +2,18 @@
 # If 0 is specified or omitted, as many threads as possible will be used, which may cause your computer to lag.
 threads: 4
 
-rendering:
+image:
+  # The output mode could be one of the following modes:
+  # * png: output PNG image in 24-bit RGB format (8 bits per channel)
+  # * raw: output raw RGB stream in single-precision floating-point value (32 bits per channel)
+  # The sRGB color space is used in output.
+  mode: png
   # path of output image, default to `output.png`
   output: output.png
   # size of output image
   size: [240, 180]
+
+rendering:
   # sample per pixel
   spp: 100
   # the number of sample in supersampling anti-aliasing, in square root
@@ -40,7 +47,8 @@ camera:
 # Vertex indices must be in `vertex_indices` element, must be a list of size 3.
 #
 # A texture image file can be specified as `texture` field.
-# The image format can be PNG, JPEG and BMP.
+# The image format could be PNG, JPEG and BMP.
+# The sRGB color space is supposed to be used.
 # If specified, the vertex element must have properties `u` and `v`, as texture coordinates.
 #
 # For sphere type:
@@ -53,7 +61,8 @@ camera:
 # For a field supposed to be a triple, you can simply specify one number `s` to denote `[s, s, s]`.
 #
 # A color is denoted as a triple `[r, g, b]`.
-# The components in normal color are between 0.0 and 1.0, but you can also specify bigger values.
+# The components of a normal color are between 0.0 and 1.0, but you can also specify bigger values.
+# The linear color space is supposed to be used.
 # color: object color, ignored if texture is supplied
 # emission: light color for lighting objects, default to `0`
 #

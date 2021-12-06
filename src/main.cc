@@ -8,20 +8,24 @@ int main(int argc, char** argv) {
     if (int n = env::fetch(conf["threads"], 0)) {
         omp_set_num_threads(n);
     }
-    auto bm = conf["bm"];
+    std::string mode = "png";
     std::string p = "output.png";
-    Option opt;
-    if (auto e = conf["rendering"]) {
+    if (auto e = conf["image"]) {
+        mode = env::fetch(e["mode"], mode);
         p = env::fetch(e["output"], p);
         if (auto size = e["size"]) {
             w = size[0].as<int>();
             h = size[1].as<int>();
         }
-        opt = Option(e);
     }
+    Option opt(conf["rendering"]);
     Scene scene = Scene::load(conf["scene"]);
     Camera cam = Camera::load(conf["camera"], (double) w / h);
     Image im(w, h);
     cam.render(scene, im, opt);
-    im.save(p);
+    if (mode == "png") {
+        im.save_png(p);
+    } else if (mode == "raw") {
+        im.save_raw(p);
+    }
 }

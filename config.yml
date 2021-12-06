@@ -1,7 +1,9 @@
 threads: 4
-rendering:
+image:
+  mode: png
   output: output.png
   size: [240, 135]
+rendering:
   spp: 100
   ssaa: 2
   rounds: 1
