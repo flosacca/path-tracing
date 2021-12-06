@@ -73,12 +73,12 @@ public:
 
     template <typename T>
     T& as() {
-        return *reinterpret_cast<T*>(storage);
+        return *reinterpret_cast<T*>(&storage);
     }
 
     template <typename T>
     const T& as() const {
-        return *reinterpret_cast<const T*>(storage);
+        return *reinterpret_cast<const T*>(&storage);
     }
 
     template <typename T>
@@ -108,6 +108,6 @@ private:
         });
     }
 
-    alignas(num::max(alignof(Ts)...)) uint8_t storage[num::max(sizeof(Ts)...)];
+    std::aligned_union_t<0, Ts...> storage;
     int tag = -1;
 };

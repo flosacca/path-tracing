@@ -51,8 +51,6 @@ template <class T>
 using add_pointer = typename std::add_pointer<T>::type;
 
 // other transformations:
-template <size_t Len, class... Types>
-using aligned_union = typename std::aligned_union<Len, Types...>::type;
 template <class T>
 using decay = typename std::decay<T>::type;
 template <bool b, class T = void>
