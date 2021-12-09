@@ -25,3 +25,9 @@ In Windows, you need to compile under MSYS2 or WSL.
 Run `./main [CONFIG]`, where `CONFIG` is the configuration file in YAML format, default to `config.yml`.
 
 See `example.yml` for the detail of configuration.
+
+## Sample
+
+![sample](sample.png)
+
+Full-size versions of this image are available in the release page.
